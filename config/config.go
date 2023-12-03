@@ -1,3 +1,3 @@
 package config
 
-var API_URL = "http://localhost:8080"
+var APIURL = "http://localhost:8080"

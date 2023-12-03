@@ -4,9 +4,9 @@ import (
 	"regexp"
 )
 
-const ValidUrlSymbols = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const ValidURLSymbols = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-func ValidateUrl(url string) bool {
+func ValidateURL(url string) bool {
 	r := regexp.MustCompile(`^(https?://)?([\da-z.-]+)\.([a-z.]{2,6})([/\w.-]*)*/?$`)
 
 	return r.MatchString(url)

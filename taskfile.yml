@@ -12,6 +12,10 @@ tasks:
       - go build -o shortener.exe
 
   # TODO go test...
+
+  vet:
+    cmds:
+      - go vet -vettool=statictest ./...
   
   autotest:
     cmds:
