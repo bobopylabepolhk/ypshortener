@@ -10,7 +10,7 @@ import (
 	urlutils "github.com/bobopylabepolhk/ypshortener/pkg"
 )
 
-func handleGetURL(w http.ResponseWriter, r *http.Request) {
+func handleGetURL(us *URLShortener, w http.ResponseWriter, r *http.Request) {
 	if !urlutils.ValidatePathParam(r.URL.Path) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -18,7 +18,7 @@ func handleGetURL(w http.ResponseWriter, r *http.Request) {
 
 	token := strings.Replace(r.URL.Path, "/", "", 1)
 
-	ogURL, err := GetOriginalURL(token)
+	ogURL, err := us.GetOriginalURL(token)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -28,15 +28,15 @@ func handleGetURL(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func handleShortenURL(w http.ResponseWriter, r *http.Request) {
+func handleShortenURL(us *URLShortener, w http.ResponseWriter, r *http.Request) {
 	ogURL, err := io.ReadAll(r.Body)
 	if r.URL.Path != "/" || err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	token := GetShortURLToken(6)
-	err = SaveShortURL(string(ogURL), token)
+	token := us.GetShortURLToken()
+	err = us.SaveShortURL(string(ogURL), token)
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -49,21 +49,24 @@ func handleShortenURL(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(res))
 }
 
-func handleShortener(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		{
-			handleGetURL(w, r)
+func handleShortener(us *URLShortener) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			{
+				handleGetURL(us, w, r)
+			}
+		case http.MethodPost:
+			{
+				handleShortenURL(us, w, r)
+			}
+		default:
+			w.WriteHeader(http.StatusBadRequest)
 		}
-	case http.MethodPost:
-		{
-			handleShortenURL(w, r)
-		}
-	default:
-		w.WriteHeader(http.StatusBadRequest)
 	}
 }
 
 func Router(m *http.ServeMux) {
-	m.HandleFunc("/", handleShortener)
+	us := NewURLShortener(6)
+	m.HandleFunc("/", handleShortener(us))
 }

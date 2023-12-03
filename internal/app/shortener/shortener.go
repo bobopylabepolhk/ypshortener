@@ -11,30 +11,39 @@ import (
 
 var urls = map[string]string{}
 
-func GetShortURLToken(l int) string {
+type URLShortener struct {
+	urls     map[string]string
+	tokenLen int
+}
+
+func NewURLShortener(l int) *URLShortener {
+	return &URLShortener{urls: make(map[string]string), tokenLen: l}
+}
+
+func (us URLShortener) GetShortURLToken() string {
 	seed := time.Now().UnixNano()
 	rand.New(rand.NewSource(seed))
 
-	result := make([]byte, l)
+	result := make([]byte, us.tokenLen)
 
-	for i := 0; i < l; i++ {
+	for i := 0; i < us.tokenLen; i++ {
 		result[i] = urlutils.ValidURLSymbols[rand.Intn(len(urlutils.ValidURLSymbols))]
 	}
 
 	return string(result)
 }
 
-func SaveShortURL(url string, shortURL string) error {
+func (us URLShortener) SaveShortURL(url string, token string) error {
 	if !urlutils.ValidateURL(url) {
 		return errors.New("not a valid url")
 	}
 
-	urls[shortURL] = url
+	urls[token] = url
 
 	return nil
 }
 
-func GetOriginalURL(shortURL string) (string, error) {
+func (us URLShortener) GetOriginalURL(shortURL string) (string, error) {
 	if v, ok := urls[shortURL]; ok {
 		return v, nil
 	}
