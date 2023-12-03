@@ -1,0 +1,19 @@
+version: '3'
+
+tasks:
+  start:
+    dir: cmd/shortener
+    cmds:
+      - go run main.go
+  
+  build:
+    dir: cmd/shortener
+    cmds: 
+      - go build -o shortener.exe
+
+  # TODO go test...
+  
+  autotest:
+    cmds:
+      - task: build
+      - shortenertest -test.v -test.run=^TestIteration{{.ITER}}$ -binary-path=cmd/shortener/shortener {{.CLI_ARGS}}
