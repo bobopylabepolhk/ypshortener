@@ -11,16 +11,16 @@ import (
 
 var urls = map[string]string{}
 
-type URLShortener struct {
+type URLShortenerService struct {
 	urls     map[string]string
 	tokenLen int
 }
 
-func NewURLShortener(l int) *URLShortener {
-	return &URLShortener{urls: make(map[string]string), tokenLen: l}
+func NewURLShortenerService(l int) *URLShortenerService {
+	return &URLShortenerService{urls: make(map[string]string), tokenLen: l}
 }
 
-func (us URLShortener) GetShortURLToken() string {
+func (us URLShortenerService) GetShortURLToken() string {
 	seed := time.Now().UnixNano()
 	rand.New(rand.NewSource(seed))
 
@@ -33,7 +33,7 @@ func (us URLShortener) GetShortURLToken() string {
 	return string(result)
 }
 
-func (us URLShortener) SaveShortURL(url string, token string) error {
+func (us URLShortenerService) SaveShortURL(url string, token string) error {
 	if !urlutils.ValidateURL(url) {
 		return errors.New("not a valid url")
 	}
@@ -43,7 +43,7 @@ func (us URLShortener) SaveShortURL(url string, token string) error {
 	return nil
 }
 
-func (us URLShortener) GetOriginalURL(shortURL string) (string, error) {
+func (us URLShortenerService) GetOriginalURL(shortURL string) (string, error) {
 	if v, ok := urls[shortURL]; ok {
 		return v, nil
 	}

@@ -10,7 +10,13 @@ import (
 	urlutils "github.com/bobopylabepolhk/ypshortener/pkg"
 )
 
-func handleGetURL(us *URLShortener, w http.ResponseWriter, r *http.Request) {
+type URLShortener interface {
+	GetShortURLToken() string
+	SaveShortURL(url string, token string) error
+	GetOriginalURL(shortURL string) (string, error)
+}
+
+func handleGetURL(us URLShortener, w http.ResponseWriter, r *http.Request) {
 	if !urlutils.ValidatePathParam(r.URL.Path) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -28,7 +34,7 @@ func handleGetURL(us *URLShortener, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func handleShortenURL(us *URLShortener, w http.ResponseWriter, r *http.Request) {
+func handleShortenURL(us URLShortener, w http.ResponseWriter, r *http.Request) {
 	ogURL, err := io.ReadAll(r.Body)
 	if r.URL.Path != "/" || err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -49,7 +55,7 @@ func handleShortenURL(us *URLShortener, w http.ResponseWriter, r *http.Request) 
 	w.Write([]byte(res))
 }
 
-func handleShortener(us *URLShortener) http.HandlerFunc {
+func handleShortener(us URLShortener) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
@@ -67,6 +73,6 @@ func handleShortener(us *URLShortener) http.HandlerFunc {
 }
 
 func Router(m *http.ServeMux) {
-	us := NewURLShortener(6)
+	us := NewURLShortenerService(6)
 	m.HandleFunc("/", handleShortener(us))
 }
