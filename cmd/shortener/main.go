@@ -8,7 +8,7 @@ import (
 
 func run() error {
 	mux := http.NewServeMux()
-	shortener.Router(mux)
+	shortener.NewRouter(mux)
 
 	return http.ListenAndServe(":8080", mux)
 }

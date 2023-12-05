@@ -10,13 +10,19 @@ import (
 	urlutils "github.com/bobopylabepolhk/ypshortener/pkg"
 )
 
-type URLShortener interface {
-	GetShortURLToken() string
-	SaveShortURL(url string, token string) error
-	GetOriginalURL(shortURL string) (string, error)
-}
+type (
+	URLShortener interface {
+		GetShortURLToken() string
+		SaveShortURL(url string, token string) error
+		GetOriginalURL(shortURL string) (string, error)
+	}
 
-func handleGetURL(us URLShortener, w http.ResponseWriter, r *http.Request) {
+	Router struct {
+		Us URLShortener
+	}
+)
+
+func (router *Router) HandleGetURL(w http.ResponseWriter, r *http.Request) {
 	if !urlutils.ValidatePathParam(r.URL.Path) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -24,7 +30,7 @@ func handleGetURL(us URLShortener, w http.ResponseWriter, r *http.Request) {
 
 	token := strings.Replace(r.URL.Path, "/", "", 1)
 
-	ogURL, err := us.GetOriginalURL(token)
+	ogURL, err := router.Us.GetOriginalURL(token)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -34,15 +40,15 @@ func handleGetURL(us URLShortener, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func handleShortenURL(us URLShortener, w http.ResponseWriter, r *http.Request) {
+func (router *Router) HandleShortenURL(w http.ResponseWriter, r *http.Request) {
 	ogURL, err := io.ReadAll(r.Body)
 	if r.URL.Path != "/" || err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	token := us.GetShortURLToken()
-	err = us.SaveShortURL(string(ogURL), token)
+	token := router.Us.GetShortURLToken()
+	err = router.Us.SaveShortURL(string(ogURL), token)
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -55,16 +61,16 @@ func handleShortenURL(us URLShortener, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(res))
 }
 
-func handleShortener(us URLShortener) http.HandlerFunc {
+func handleShortener(router *Router) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			{
-				handleGetURL(us, w, r)
+				router.HandleGetURL(w, r)
 			}
 		case http.MethodPost:
 			{
-				handleShortenURL(us, w, r)
+				router.HandleShortenURL(w, r)
 			}
 		default:
 			w.WriteHeader(http.StatusBadRequest)
@@ -72,7 +78,8 @@ func handleShortener(us URLShortener) http.HandlerFunc {
 	}
 }
 
-func Router(m *http.ServeMux) {
-	us := NewURLShortenerService(6)
-	m.HandleFunc("/", handleShortener(us))
+func NewRouter(m *http.ServeMux) {
+	us := NewURLShortenerService()
+	router := &Router{Us: us}
+	m.HandleFunc("/", handleShortener(router))
 }

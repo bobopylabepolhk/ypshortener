@@ -11,8 +11,6 @@ tasks:
     cmds: 
       - go build -o shortener.exe
 
-  # TODO go test...
-
   vet:
     cmds:
       - go vet -vettool=statictest ./...
@@ -20,4 +18,4 @@ tasks:
   autotest:
     cmds:
       - task: build
-      - shortenertest -test.v -test.run=^TestIteration{{.ITER}}$ -binary-path=cmd/shortener/shortener {{.CLI_ARGS}}
+      - shortenertest -test.v -test.run=^TestIteration{{.ITER}}$ -binary-path=cmd/shortener/shortener -source-path=. {{.CLI_ARGS}}
