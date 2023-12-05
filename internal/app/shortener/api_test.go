@@ -36,7 +36,7 @@ func TestHandleShortenURL(t *testing.T) {
 		defer resp.Body.Close()
 		body, err := io.ReadAll(resp.Body)
 		assert.Nil(t, err)
-		assert.Contains(t, string(body), config.APIURL, "should return <APIURL>/<token>")
+		assert.Contains(t, string(body), config.BASEURL, "should return <BASEURL>/<token>")
 	})
 
 	t.Run("shoud send 400 code when body isn't provided", func(t *testing.T) {

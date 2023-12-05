@@ -46,7 +46,7 @@ func (router *Router) HandleShortenURL(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	res := fmt.Sprintf("%s/%s", config.APIURL, token)
+	res := fmt.Sprintf("%s/%s", config.BASEURL, token)
 	return ctx.String(http.StatusCreated, res)
 }
 
