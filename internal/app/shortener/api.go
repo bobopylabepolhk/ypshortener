@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/bobopylabepolhk/ypshortener/config"
-	urlutils "github.com/bobopylabepolhk/ypshortener/pkg"
+	"github.com/labstack/echo/v4"
 )
 
 type (
@@ -18,68 +17,42 @@ type (
 	}
 
 	Router struct {
-		Us URLShortener
+		URLShortenerService URLShortener
 	}
 )
 
-func (router *Router) HandleGetURL(w http.ResponseWriter, r *http.Request) {
-	if !urlutils.ValidatePathParam(r.URL.Path) {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+func (router *Router) HandleGetURL(ctx echo.Context) error {
+	token := ctx.Param("token")
 
-	token := strings.Replace(r.URL.Path, "/", "", 1)
-
-	ogURL, err := router.Us.GetOriginalURL(token)
+	ogURL, err := router.URLShortenerService.GetOriginalURL(token)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
+		return echo.ErrNotFound
 	}
 
-	w.Header().Add("Location", ogURL)
-	w.WriteHeader(http.StatusTemporaryRedirect)
+	ctx.Response().Header().Add("Location", ogURL)
+	return ctx.NoContent(http.StatusTemporaryRedirect)
 }
 
-func (router *Router) HandleShortenURL(w http.ResponseWriter, r *http.Request) {
-	ogURL, err := io.ReadAll(r.Body)
-	if r.URL.Path != "/" || err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+func (router *Router) HandleShortenURL(ctx echo.Context) error {
+	ogURL, err := io.ReadAll(ctx.Request().Body)
+	if err != nil {
+		return echo.ErrBadRequest
 	}
 
-	token := router.Us.GetShortURLToken()
-	err = router.Us.SaveShortURL(string(ogURL), token)
+	token := router.URLShortenerService.GetShortURLToken()
+	err = router.URLShortenerService.SaveShortURL(string(ogURL), token)
 
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return echo.ErrBadRequest
 	}
 
 	res := fmt.Sprintf("%s/%s", config.APIURL, token)
-	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(res))
+	return ctx.String(http.StatusCreated, res)
 }
 
-func handleShortener(router *Router) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			{
-				router.HandleGetURL(w, r)
-			}
-		case http.MethodPost:
-			{
-				router.HandleShortenURL(w, r)
-			}
-		default:
-			w.WriteHeader(http.StatusBadRequest)
-		}
-	}
-}
-
-func NewRouter(m *http.ServeMux) {
+func NewRouter(e *echo.Echo) {
 	us := NewURLShortenerService()
-	router := &Router{Us: us}
-	m.HandleFunc("/", handleShortener(router))
+	router := &Router{URLShortenerService: us}
+	e.GET("/:token", router.HandleGetURL)
+	e.POST("/", router.HandleShortenURL)
 }

@@ -1,4 +1,6 @@
 package config
 
-var APIURL = "http://localhost:8080"
-var MinTokenLength = 6
+import "fmt"
+
+var PORT = 8080
+var APIURL = fmt.Sprintf("http://localhost:%d", PORT)

@@ -9,11 +9,3 @@ func ValidateURL(url string) bool {
 
 	return r.MatchString(url)
 }
-
-// TODO remove func after rewriting to echo
-
-func ValidatePathParam(url string) bool {
-	r := regexp.MustCompile(`^/[A-Za-z0-9]+/?$`)
-
-	return r.MatchString(url)
-}

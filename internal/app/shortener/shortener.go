@@ -6,21 +6,18 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/bobopylabepolhk/ypshortener/config"
 	urlutils "github.com/bobopylabepolhk/ypshortener/pkg"
 )
 
 var urls = map[string]string{}
 
 type URLShortenerService struct {
-	urls     map[string]string
-	tokenLen int
+	urls map[string]string
 }
 
 func NewURLShortenerService() *URLShortenerService {
 	return &URLShortenerService{
-		urls:     make(map[string]string),
-		tokenLen: config.MinTokenLength,
+		urls: make(map[string]string),
 	}
 }
 
@@ -29,9 +26,10 @@ func (us URLShortenerService) GetShortURLToken() string {
 	seed := time.Now().UnixNano()
 	rand.New(rand.NewSource(seed))
 
-	result := make([]byte, us.tokenLen)
+	tokenLen := 6
+	result := make([]byte, tokenLen)
 
-	for i := 0; i < us.tokenLen; i++ {
+	for i := 0; i < tokenLen; i++ {
 		result[i] = tokenChars[rand.Intn(len(tokenChars))]
 	}
 
