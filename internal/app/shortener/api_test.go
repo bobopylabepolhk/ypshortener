@@ -44,6 +44,7 @@ func TestHandleShortenURL(t *testing.T) {
 		router.HandleShortenURL(rec, req)
 
 		resp := rec.Result()
+		defer resp.Body.Close()
 		assert.Equal(t, resp.StatusCode, http.StatusBadRequest)
 	})
 	t.Run("should create new shortURL if called with same ogURL", func(t *testing.T) {
@@ -88,6 +89,7 @@ func TestHandleGetURL(t *testing.T) {
 		router.HandleGetURL(rec, req)
 
 		resp := rec.Result()
+		defer resp.Body.Close()
 		assert.Equal(
 			t,
 			resp.StatusCode,
@@ -109,6 +111,7 @@ func TestHandleGetURL(t *testing.T) {
 		router.HandleGetURL(rec, req)
 
 		resp := rec.Result()
+		defer resp.Body.Close()
 		assert.Equal(
 			t,
 			resp.StatusCode,
