@@ -3,8 +3,6 @@ package shortener
 import (
 	"errors"
 	"fmt"
-	"math/rand"
-	"time"
 
 	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 )
@@ -17,21 +15,6 @@ func NewURLShortenerService() *URLShortenerService {
 	return &URLShortenerService{
 		urls: make(map[string]string),
 	}
-}
-
-func (us URLShortenerService) GetShortURLToken() string {
-	const tokenChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	seed := time.Now().UnixNano()
-	rand.New(rand.NewSource(seed))
-
-	tokenLen := 6
-	result := make([]byte, tokenLen)
-
-	for i := 0; i < tokenLen; i++ {
-		result[i] = tokenChars[rand.Intn(len(tokenChars))]
-	}
-
-	return string(result)
 }
 
 func (us URLShortenerService) SaveShortURL(url string, token string) error {

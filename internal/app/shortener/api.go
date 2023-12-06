@@ -5,13 +5,14 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/bobopylabepolhk/ypshortener/config"
 	"github.com/labstack/echo/v4"
+
+	"github.com/bobopylabepolhk/ypshortener/config"
+	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 )
 
 type (
 	URLShortener interface {
-		GetShortURLToken() string
 		SaveShortURL(url string, token string) error
 		GetOriginalURL(shortURL string) (string, error)
 	}
@@ -39,14 +40,14 @@ func (router *Router) HandleShortenURL(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	token := router.URLShortenerService.GetShortURLToken()
+	token := urlutils.GetShortURLToken()
 	err = router.URLShortenerService.SaveShortURL(string(ogURL), token)
 
 	if err != nil {
 		return echo.ErrBadRequest
 	}
 
-	res := fmt.Sprintf("%s/%s", config.BASEURL, token)
+	res := fmt.Sprintf("%s/%s", config.Cfg.BaseURL, token)
 	return ctx.String(http.StatusCreated, res)
 }
 

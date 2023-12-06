@@ -1,10 +1,12 @@
 package urlutils_test
 
 import (
+	"regexp"
 	"testing"
 
-	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 	"github.com/stretchr/testify/require"
+
+	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 )
 
 func TestValidateUrl(t *testing.T) {
@@ -34,6 +36,19 @@ func TestValidateUrl(t *testing.T) {
 		for _, v := range urls {
 			r := urlutils.ValidateURL(v)
 			require.False(t, r, v)
+		}
+	})
+}
+
+func TestGetToken(t *testing.T) {
+	iterations := 99
+
+	t.Run("token should never contain: ? / # & % . ,", func(t *testing.T) {
+		for i := 0; i < iterations; i++ {
+			token := urlutils.GetShortURLToken()
+			r := regexp.MustCompile(`[^?/#&%.,]*$`)
+
+			require.Regexp(t, r, token)
 		}
 	})
 }

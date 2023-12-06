@@ -3,23 +3,32 @@ package config
 import (
 	"flag"
 	"fmt"
-	"os"
+
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
-func getEnv(key string, defaultValue string) string {
-	if v, ok := os.LookupEnv(key); ok {
-		return v
-	}
-
-	return defaultValue
+type Config struct {
+	Port    int    `env:"PORT" env-default:"8080"`
+	ApiURL  string `env:"SERVER_ADDRESS" env-default:"localhost:8080"`
+	BaseURL string `env:"BASE_URL" env-default:"http://localhost:8080"`
 }
 
-var PORT = getEnv("PORT", "8080")
-var APIURL = getEnv("SERVER_ADDRESS", fmt.Sprintf("localhost:%s", PORT))
-var BASEURL = getEnv("BASE_URL", fmt.Sprintf("http://%s", APIURL))
+var Cfg Config
 
-func InitFromCLI() {
-	flag.StringVar(&APIURL, "a", APIURL, "api service address")
-	flag.StringVar(&BASEURL, "b", BASEURL, "shortURL address")
+func initFromCLI() {
+	flag.StringVar(&Cfg.ApiURL, "a", Cfg.ApiURL, "api service address")
+	flag.StringVar(&Cfg.BaseURL, "b", Cfg.BaseURL, "shortURL address")
 	flag.Parse()
+}
+
+func initFromEnv() {
+	err := cleanenv.ReadEnv(&Cfg)
+	if err != nil {
+		panic(fmt.Errorf("failed to read config %v", err))
+	}
+}
+
+func InitConfig() {
+	initFromCLI()
+	initFromEnv()
 }

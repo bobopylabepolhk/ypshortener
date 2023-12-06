@@ -7,11 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bobopylabepolhk/ypshortener/config"
-	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/bobopylabepolhk/ypshortener/config"
+	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener"
 )
 
 func TestHandleShortenURL(t *testing.T) {
@@ -39,7 +40,7 @@ func TestHandleShortenURL(t *testing.T) {
 		defer resp.Body.Close()
 		body, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
-		assert.Contains(t, string(body), config.BASEURL, "should return <BASEURL>/<token>")
+		assert.Contains(t, string(body), config.Cfg.BaseURL, "should return <BASEURL>/<token>")
 	})
 
 	t.Run("shoud send 400 code when body isn't provided", func(t *testing.T) {

@@ -1,27 +1,13 @@
 package shortener_test
 
 import (
-	"regexp"
 	"testing"
 
-	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener"
 )
-
-func TestGetToken(t *testing.T) {
-	us := shortener.NewURLShortenerService()
-	iterations := 99
-
-	t.Run("token should never contain: ? / # & % . ,", func(t *testing.T) {
-		for i := 0; i < iterations; i++ {
-			token := us.GetShortURLToken()
-			r := regexp.MustCompile(`[^?/#&%.,]*$`)
-
-			require.Regexp(t, r, token)
-		}
-	})
-}
 
 func TestGetOgURL(t *testing.T) {
 	t.Run("should return err if ogURL was never saved", func(t *testing.T) {
