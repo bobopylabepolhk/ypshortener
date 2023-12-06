@@ -11,6 +11,7 @@ import (
 	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHandleShortenURL(t *testing.T) {
@@ -23,7 +24,8 @@ func TestHandleShortenURL(t *testing.T) {
 
 		e := echo.New()
 		ctx := e.NewContext(req, rec)
-		router.HandleShortenURL(ctx)
+		err := router.HandleShortenURL(ctx)
+		require.NoError(t, err)
 
 		resp := rec.Result()
 		assert.Equal(t, http.StatusCreated, resp.StatusCode, "success code should be 201")
