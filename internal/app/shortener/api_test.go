@@ -48,9 +48,9 @@ func TestHandleShortenURL(t *testing.T) {
 
 		e := echo.New()
 		ctx := e.NewContext(req, rec)
-		echoErr := router.HandleShortenURL(ctx)
+		err := router.HandleShortenURL(ctx)
 
-		assert.Equal(t, http.StatusBadRequest, echoErr.(*echo.HTTPError).Code)
+		assert.EqualError(t, err, echo.ErrBadRequest.Error())
 	})
 
 	t.Run("should create new shortURL if called with same ogURL", func(t *testing.T) {
@@ -125,13 +125,8 @@ func TestHandleGetURL(t *testing.T) {
 		ctx := e.NewContext(req, rec)
 		ctx.SetParamNames("token")
 		ctx.SetParamValues("yU7n23")
-		echoErr := router.HandleGetURL(ctx)
+		err := router.HandleGetURL(ctx)
 
-		assert.Equal(
-			t,
-			http.StatusNotFound,
-			echoErr.(*echo.HTTPError).Code,
-			"status code should be 404",
-		)
+		assert.EqualError(t, err, echo.ErrNotFound.Error())
 	})
 }
