@@ -9,14 +9,14 @@ import (
 
 type Config struct {
 	Port    int    `env:"PORT" env-default:"8080"`
-	ApiURL  string `env:"SERVER_ADDRESS" env-default:"localhost:8080"`
+	APIURL  string `env:"SERVER_ADDRESS" env-default:"localhost:8080"`
 	BaseURL string `env:"BASE_URL" env-default:"http://localhost:8080"`
 }
 
 var Cfg Config
 
 func initFromCLI() {
-	flag.StringVar(&Cfg.ApiURL, "a", Cfg.ApiURL, "api service address")
+	flag.StringVar(&Cfg.APIURL, "a", Cfg.APIURL, "api service address")
 	flag.StringVar(&Cfg.BaseURL, "b", Cfg.BaseURL, "shortURL address")
 	flag.Parse()
 }

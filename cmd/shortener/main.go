@@ -12,5 +12,5 @@ func main() {
 	e := echo.New()
 	shortener.NewRouter(e)
 
-	e.Logger.Fatal(e.Start(config.Cfg.ApiURL))
+	e.Logger.Fatal(e.Start(config.Cfg.APIURL))
 }
