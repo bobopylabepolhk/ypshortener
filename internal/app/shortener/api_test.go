@@ -36,7 +36,7 @@ func TestHandleShortenURL(t *testing.T) {
 
 		defer resp.Body.Close()
 		body, err := io.ReadAll(resp.Body)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Contains(t, string(body), config.BASEURL, "should return <BASEURL>/<token>")
 	})
 
@@ -70,12 +70,12 @@ func TestHandleShortenURL(t *testing.T) {
 
 		defer resp1.Body.Close()
 		body1, err := io.ReadAll(resp1.Body)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		defer resp2.Body.Close()
 		body2, err := io.ReadAll(resp1.Body)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.NotEqual(t, string(body1), string(body2))
 	})
 }
@@ -86,7 +86,7 @@ func TestHandleGetURL(t *testing.T) {
 		token := "Ghf6i9"
 		ogURL := "https://yandex.ru/maps/geo/sankt_peterburg/53000093/?ll=30.092322%2C59.940675&z=9.87"
 		err := us.SaveShortURL(ogURL, token)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		router := shortener.Router{URLShortenerService: us}
 

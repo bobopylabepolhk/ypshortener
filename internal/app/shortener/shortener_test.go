@@ -37,9 +37,9 @@ func TestGetOgURL(t *testing.T) {
 		token := "6Tg8oJ"
 		ogURL := "https://yandex.com/"
 		err := us.SaveShortURL(ogURL, token)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		r, err := us.GetOriginalURL(token)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, ogURL, r)
 	})
 
