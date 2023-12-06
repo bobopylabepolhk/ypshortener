@@ -3,7 +3,7 @@ package urlutils_test
 import (
 	"testing"
 
-	urlutils "github.com/bobopylabepolhk/ypshortener/pkg"
+	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 	"github.com/stretchr/testify/require"
 )
 

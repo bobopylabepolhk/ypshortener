@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	urlutils "github.com/bobopylabepolhk/ypshortener/pkg"
+	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 )
 
 var urls = map[string]string{}
