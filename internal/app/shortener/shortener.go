@@ -9,8 +9,6 @@ import (
 	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 )
 
-var urls = map[string]string{}
-
 type URLShortenerService struct {
 	urls map[string]string
 }
@@ -41,13 +39,13 @@ func (us URLShortenerService) SaveShortURL(url string, token string) error {
 		return errors.New("not a valid url")
 	}
 
-	urls[token] = url
+	us.urls[token] = url
 
 	return nil
 }
 
 func (us URLShortenerService) GetOriginalURL(shortURL string) (string, error) {
-	if v, ok := urls[shortURL]; ok {
+	if v, ok := us.urls[shortURL]; ok {
 		return v, nil
 	}
 

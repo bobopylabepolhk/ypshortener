@@ -26,11 +26,12 @@ func TestHandleShortenURL(t *testing.T) {
 		router.HandleShortenURL(ctx)
 
 		resp := rec.Result()
-		assert.Equal(t, resp.StatusCode, http.StatusCreated, "success code should be 201")
+		assert.Equal(t, http.StatusCreated, resp.StatusCode, "success code should be 201")
 		assert.Contains(
 			t,
 			resp.Header.Get("Content-Type"),
-			"text/plain", "Content type header should be text/plain",
+			"text/plain",
+			"Content type header should be text/plain",
 		)
 
 		defer resp.Body.Close()
@@ -108,10 +109,10 @@ func TestHandleGetURL(t *testing.T) {
 		)
 		assert.Equal(
 			t,
+			ogURL,
 			resp.Header.Get("Location"),
-			ogURL, "Location should be set",
+			"Location should be set",
 		)
-
 	})
 
 	t.Run("shoud send 404 code when called without saving ogURL first", func(t *testing.T) {
