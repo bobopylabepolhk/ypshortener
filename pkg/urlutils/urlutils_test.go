@@ -15,6 +15,8 @@ func TestValidateUrl(t *testing.T) {
 			"https://browser.yandex.ru/corp/",
 			"https://practicum.yandex.ru/trainer/go-advanced/lesson/adfc3335-796e-4df6-b454-6c602a749003/",
 			"http://service.app.io?search=a&id=12",
+			"http://login:pass@github.com/",
+			"http://login@github.com/",
 			"https://companies.com?page=0&sort_by=&sort_order=asc&filters=%5B%7B%22column_name%22%3A%22sector%22%2C%22operator%22%3A%22in%22%2C%22value%22%3A%5B%22Cruise%20lines%22%5D%7D%2C%7B%22column_name%22%3A%22subscription_expires_at%22%2C%22operator%22%3A%22in%22%2C%22value%22%3A%5B%222020-06-19%22%2C%222035-06-19%22%5D%7D%5D&page_size=100&search=test",
 		}
 
@@ -29,7 +31,7 @@ func TestValidateUrl(t *testing.T) {
 			"htps://google.com",
 			"http:/vk.ru/",
 			"http://service.app.iosearch&id=12",
-			"http://4.123.246.235",
+			"http://0.0.0.0:80",
 			"http://localhost:3333",
 		}
 

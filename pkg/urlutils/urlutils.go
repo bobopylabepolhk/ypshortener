@@ -2,14 +2,28 @@ package urlutils
 
 import (
 	"math/rand"
-	"regexp"
+	"net/url"
+	"strings"
 	"time"
 )
 
-func ValidateURL(url string) bool {
-	r := regexp.MustCompile(`^(https?://)?([\da-z.-]+)\.([a-z.]{2,6})([/\w\.-]*)*(\?[^\s#]*)?(#[^\s]*)?$`)
+func ValidateURL(rawURL string) bool {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return false
+	}
 
-	return r.MatchString(url)
+	// for invalid params without ?
+	if u.RawQuery == "" && strings.Contains(rawURL, "&") {
+		return false
+	}
+
+	host := u.Hostname()
+	validScheme := u.Scheme == "http" || u.Scheme == "https"
+	validHost := strings.Contains(host, ".")
+	isLocal := host == "127.0.0.1" || host == "0.0.0.0"
+
+	return validScheme && validHost && !isLocal
 }
 
 func GetShortURLToken() string {
