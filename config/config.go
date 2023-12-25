@@ -11,6 +11,7 @@ type Config struct {
 	Port    int    `env:"PORT" env-default:"8080"`
 	APIURL  string `env:"SERVER_ADDRESS" env-default:"localhost:8080"`
 	BaseURL string `env:"BASE_URL" env-default:"http://localhost:8080"`
+	Debug   bool   `env:"DEBUG" env-default:"false"`
 }
 
 var Cfg Config
