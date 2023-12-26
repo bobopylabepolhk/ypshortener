@@ -5,12 +5,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func New() (*zap.SugaredLogger, error) {
-	logger, err := zap.NewProduction()
+func New() *zap.SugaredLogger {
+	logger := zap.Must(zap.NewProduction())
 
 	if config.Cfg.Debug {
-		logger, err = zap.NewDevelopment()
+		logger = zap.Must(zap.NewDevelopment())
 	}
 
-	return logger.Sugar(), err
+	return logger.Sugar()
 }

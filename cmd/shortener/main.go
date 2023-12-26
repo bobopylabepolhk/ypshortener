@@ -11,11 +11,7 @@ import (
 
 func run() {
 	e := echo.New()
-	l, err := logger.New()
-
-	if err != nil {
-		e.Logger.Error("couldn't initialize zap logger")
-	}
+	l := logger.New()
 
 	e.Use(middleware.LoggerMiddleware(l))
 
