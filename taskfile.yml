@@ -1,16 +1,21 @@
 version: '3'
 
-tasks: 
+tasks:
+  gen:
+    dir: internal/app/shortener
+    cmds:
+      - easyjson -pkg .
+
   build:
     dir: cmd/shortener
-    cmds: 
+    cmds:
+      - task: gen
       - go build -o shortener.exe
   
   start:
     dir: cmd/shortener
     cmds:
-      - task: build
-      - shortener.exe {{.CLI_ARGS}}
+      - go run main.go {{.CLI_ARGS}}
 
   vet:
     cmds:

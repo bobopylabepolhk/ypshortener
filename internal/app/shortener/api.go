@@ -51,9 +51,42 @@ func (router *Router) HandleShortenURL(ctx echo.Context) error {
 	return ctx.String(http.StatusCreated, res)
 }
 
+// easyjson:json
+type ShortenURLRequestDTO struct {
+	URL string `json:"url"`
+}
+
+// easyjson:json
+type ShortenURLResponseDTO struct {
+	Result string `json:"result"`
+}
+
+func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
+	data := new(ShortenURLRequestDTO)
+	err := ctx.Bind(data)
+
+	if err != nil {
+		return echo.ErrUnprocessableEntity
+	}
+
+	token := urlutils.GetShortURLToken()
+	err = router.URLShortenerService.SaveShortURL(data.URL, token)
+
+	if err != nil {
+		return echo.ErrBadRequest
+	}
+
+	shortURL := fmt.Sprintf("%s/%s", config.Cfg.BaseURL, token)
+	res := ShortenURLResponseDTO{Result: shortURL}
+
+	return ctx.JSON(http.StatusCreated, res)
+}
+
 func NewRouter(e *echo.Echo) {
 	us := NewURLShortenerService()
 	router := &Router{URLShortenerService: us}
 	e.GET("/:token", router.HandleGetURL)
 	e.POST("/", router.HandleShortenURL)
+
+	e.POST("/api/shorten", router.HandleJSONShortenURL)
 }
