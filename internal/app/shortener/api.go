@@ -65,7 +65,7 @@ func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
 	data := new(ShortenURLRequestDTO)
 	err := ctx.Bind(data)
 
-	if err != nil {
+	if err != nil || data.URL == "" {
 		return echo.ErrUnprocessableEntity
 	}
 
