@@ -1,15 +1,9 @@
 version: '3'
 
 tasks:
-  gen:
-    dir: internal/app/shortener
-    cmds:
-      - easyjson -pkg .
-
   build:
     dir: cmd/shortener
     cmds:
-      - task: gen
       - go build -o shortener.exe
   
   start:

@@ -51,12 +51,10 @@ func (router *Router) HandleShortenURL(ctx echo.Context) error {
 	return ctx.String(http.StatusCreated, res)
 }
 
-// easyjson:json
 type ShortenURLRequestDTO struct {
 	URL string `json:"url"`
 }
 
-// easyjson:json
 type ShortenURLResponseDTO struct {
 	Result string `json:"result"`
 }
