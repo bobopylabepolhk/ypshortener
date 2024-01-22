@@ -18,7 +18,6 @@ type (
 )
 
 func NewURLShortenerService() *URLShortenerService {
-
 	repo := NewURLShortenerRepo()
 	return &URLShortenerService{
 		repo: repo,

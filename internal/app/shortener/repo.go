@@ -5,30 +5,33 @@ import (
 	"fmt"
 
 	"github.com/bobopylabepolhk/ypshortener/config"
-	"github.com/bobopylabepolhk/ypshortener/pkg/jsonreader"
+	jsonreader "github.com/bobopylabepolhk/ypshortener/pkg/jsonreader"
 )
 
 type (
 	URLShortenerRow struct {
-		id       int
-		shortURL string
-		ogURL    string
+		ShortURL string `json:"short_url"`
+		OgURL    string `json:"original_url"`
 	}
 
 	JSONDbReader interface {
 		WriteRow(data interface{}) error
-		FindByKey(key string) ([]byte, error)
+		InitFromFile() []map[string]interface{}
 	}
 
 	URLShortenerRepo struct {
 		useJSONReader bool
-		reader        JSONDbReader
+		jsonReader    JSONDbReader
 		urls          map[string]string
 	}
 )
 
 func (repo URLShortenerRepo) CreateShortURL(token string, ogURL string) {
 	repo.urls[token] = ogURL
+	if repo.useJSONReader {
+		data := URLShortenerRow{ShortURL: token, OgURL: ogURL}
+		repo.jsonReader.WriteRow(data)
+	}
 }
 
 func (repo URLShortenerRepo) GetOgURL(shortURL string) (string, error) {
@@ -42,12 +45,24 @@ func (repo URLShortenerRepo) GetOgURL(shortURL string) (string, error) {
 }
 
 func NewURLShortenerRepo() *URLShortenerRepo {
-	JSONreader, err := jsonreader.NewJSONReader(config.Cfg.UrlStoragePath)
-	useJSONReader := err != nil || config.Cfg.UrlStoragePath == ""
+	JSONReader, err := jsonreader.NewJSONReader(config.Cfg.URLStoragePath)
+	urls := map[string]string{}
+	useJSONReader := err == nil && config.Cfg.URLStoragePath != ""
+
+	if useJSONReader {
+		json := JSONReader.InitFromFile()
+
+		for _, item := range json {
+			key := item["short_url"].(string)
+			v := item["original_url"].(string)
+
+			urls[key] = v
+		}
+	}
 
 	return &URLShortenerRepo{
 		useJSONReader: useJSONReader,
-		reader:        JSONreader,
-		urls:          make(map[string]string),
+		jsonReader:    JSONReader,
+		urls:          urls,
 	}
 }
