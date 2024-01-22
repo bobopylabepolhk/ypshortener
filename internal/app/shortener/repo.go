@@ -16,7 +16,7 @@ type (
 
 	JSONDbReader interface {
 		WriteRow(data interface{}) error
-		InitFromFile() []map[string]interface{}
+		InitFromFile() ([]map[string]interface{}, error)
 	}
 
 	URLShortenerRepo struct {
@@ -50,13 +50,14 @@ func NewURLShortenerRepo() *URLShortenerRepo {
 	useJSONReader := err == nil && config.Cfg.URLStoragePath != ""
 
 	if useJSONReader {
-		json := JSONReader.InitFromFile()
+		json, err := JSONReader.InitFromFile()
+		if err == nil {
+			for _, item := range json {
+				key := item["short_url"].(string)
+				v := item["original_url"].(string)
 
-		for _, item := range json {
-			key := item["short_url"].(string)
-			v := item["original_url"].(string)
-
-			urls[key] = v
+				urls[key] = v
+			}
 		}
 	}
 

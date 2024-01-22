@@ -26,16 +26,19 @@ func NewJSONReader(path string) (*JSONReader, error) {
 	}, nil
 }
 
-func (jr JSONReader) InitFromFile() []map[string]interface{} {
+func (jr JSONReader) InitFromFile() ([]map[string]interface{}, error) {
 	data := []map[string]interface{}{}
 	for jr.decoder.More() {
 		row := map[string]interface{}{}
-		jr.decoder.Decode(&row) // TODO HANDLE ERROR
+		err := jr.decoder.Decode(&row)
+		if err != nil {
+			return data, err
+		}
 
 		data = append(data, row)
 	}
 
-	return data
+	return data, nil
 }
 
 func (jr JSONReader) WriteRow(row interface{}) error {
