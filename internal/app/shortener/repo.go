@@ -26,7 +26,7 @@ type (
 	}
 )
 
-func (repo URLShortenerRepo) CreateShortURL(token string, ogURL string) {
+func (repo *URLShortenerRepo) CreateShortURL(token string, ogURL string) {
 	repo.urls[token] = ogURL
 	if repo.useJSONReader {
 		data := URLShortenerRow{ShortURL: token, OgURL: ogURL}
@@ -34,7 +34,7 @@ func (repo URLShortenerRepo) CreateShortURL(token string, ogURL string) {
 	}
 }
 
-func (repo URLShortenerRepo) GetOgURL(shortURL string) (string, error) {
+func (repo *URLShortenerRepo) GetOgURL(shortURL string) (string, error) {
 	if v, ok := repo.urls[shortURL]; ok {
 		return v, nil
 	}

@@ -17,8 +17,7 @@ type (
 	}
 )
 
-func NewURLShortenerService() *URLShortenerService {
-	repo := NewURLShortenerRepo()
+func NewURLShortenerService(repo *URLShortenerRepo) *URLShortenerService {
 	return &URLShortenerService{
 		repo: repo,
 	}

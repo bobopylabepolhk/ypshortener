@@ -13,6 +13,7 @@ type Config struct {
 	BaseURL        string `env:"BASE_URL" env-default:"http://localhost:8080"`
 	Debug          bool   `env:"DEBUG" env-default:"false"`
 	URLStoragePath string `env:"FILE_STORAGE_PATH" env-default:"/tmp/short-url-db.json"`
+	PostgresDSN    string `env:"DATABASE_DSN" env-default:"postgresql://postgres:postgres@localhost:5449/shortener?sslmode=disable"`
 }
 
 var Cfg Config
@@ -21,6 +22,8 @@ func initFromCLI() {
 	flag.StringVar(&Cfg.APIURL, "a", Cfg.APIURL, "api service address")
 	flag.StringVar(&Cfg.BaseURL, "b", Cfg.BaseURL, "shortURL address")
 	flag.StringVar(&Cfg.URLStoragePath, "f", Cfg.URLStoragePath, "short url db path")
+	flag.StringVar(&Cfg.PostgresDSN, "d", Cfg.PostgresDSN, "postgres db path")
+
 	flag.Parse()
 }
 

@@ -1,0 +1,37 @@
+package healthcheck
+
+import (
+	"database/sql"
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+)
+
+type (
+	Healthcheck interface {
+		PingDb() error
+	}
+
+	Router struct {
+		HealthcheckService Healthcheck
+	}
+)
+
+func (router *Router) HandlePing(ctx echo.Context) error {
+	err := router.HealthcheckService.PingDb()
+
+	if err != nil {
+		return echo.ErrInternalServerError
+	}
+
+	return ctx.NoContent(http.StatusOK)
+}
+
+func NewRouter(e *echo.Echo, db *sql.DB) {
+	repo := NewHealthcheckRepo(db)
+	hs := NewHealthcheckService(repo)
+	router := &Router{HealthcheckService: hs}
+
+	e.GET("/ping", router.HandlePing)
+
+}

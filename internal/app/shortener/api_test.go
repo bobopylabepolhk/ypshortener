@@ -19,7 +19,8 @@ import (
 
 func TestHandleShortenURL(t *testing.T) {
 	t.Run("should save ogURL and respond with shortURL", func(t *testing.T) {
-		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService()}
+		repo := shortener.NewURLShortenerRepo()
+		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService(repo)}
 		ogURL := "https://lavka.yandex.ru/"
 
 		rec := httptest.NewRecorder()
@@ -46,7 +47,8 @@ func TestHandleShortenURL(t *testing.T) {
 	})
 
 	t.Run("shoud send 400 code when body isn't provided", func(t *testing.T) {
-		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService()}
+		repo := shortener.NewURLShortenerRepo()
+		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService(repo)}
 
 		rec := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
@@ -59,7 +61,8 @@ func TestHandleShortenURL(t *testing.T) {
 	})
 
 	t.Run("should create new shortURL if called with same ogURL", func(t *testing.T) {
-		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService()}
+		repo := shortener.NewURLShortenerRepo()
+		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService(repo)}
 
 		ogURL := "https://market.yandex.ru/"
 		rec := httptest.NewRecorder()
@@ -87,7 +90,8 @@ func TestHandleShortenURL(t *testing.T) {
 
 func TestHandleJSONShortenURl(t *testing.T) {
 	t.Run("shoud send 422 code when body isn't provided", func(t *testing.T) {
-		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService()}
+		repo := shortener.NewURLShortenerRepo()
+		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService(repo)}
 
 		rec := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodPost, "/api/shorten", nil)
@@ -100,7 +104,8 @@ func TestHandleJSONShortenURl(t *testing.T) {
 	})
 
 	t.Run("shoud send 422 code when json is missing url field", func(t *testing.T) {
-		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService()}
+		repo := shortener.NewURLShortenerRepo()
+		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService(repo)}
 		e := echo.New()
 
 		tests := []map[string]interface{}{
@@ -128,7 +133,8 @@ func TestHandleJSONShortenURl(t *testing.T) {
 
 func TestHandleGetURL(t *testing.T) {
 	t.Run("should successfully respond with ogURL", func(t *testing.T) {
-		us := shortener.NewURLShortenerService()
+		repo := shortener.NewURLShortenerRepo()
+		us := shortener.NewURLShortenerService(repo)
 		token := "Ghf6i9"
 		ogURL := "https://yandex.ru/maps/geo/sankt_peterburg/53000093/?ll=30.092322%2C59.940675&z=9.87"
 		err := us.SaveShortURL(ogURL, token)
@@ -162,7 +168,8 @@ func TestHandleGetURL(t *testing.T) {
 	})
 
 	t.Run("shoud send 404 code when called without saving ogURL first", func(t *testing.T) {
-		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService()}
+		repo := shortener.NewURLShortenerRepo()
+		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService(repo)}
 
 		rec := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)

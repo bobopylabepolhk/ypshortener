@@ -81,7 +81,8 @@ func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
 }
 
 func NewRouter(e *echo.Echo) {
-	us := NewURLShortenerService()
+	repo := NewURLShortenerRepo()
+	us := NewURLShortenerService(repo)
 	router := &Router{URLShortenerService: us}
 	e.GET("/:token", router.HandleGetURL)
 	e.POST("/", router.HandleShortenURL)
