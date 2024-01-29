@@ -1,6 +1,7 @@
 package shortener
 
 import (
+	"database/sql"
 	"fmt"
 	"io"
 	"net/http"
@@ -8,6 +9,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/bobopylabepolhk/ypshortener/config"
+	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener/repo"
+	"github.com/bobopylabepolhk/ypshortener/pkg/logger"
 	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 )
 
@@ -80,8 +83,11 @@ func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, res)
 }
 
-func NewRouter(e *echo.Echo) {
-	repo := NewURLShortenerRepo()
+func NewRouter(e *echo.Echo, db *sql.DB) {
+	repo, err := repo.NewURLShortenerRepo(repo.WithPostgres(db))
+	if err != nil {
+		logger.Fatal("failed to initialize URLShortenerRepository")
+	}
 	us := NewURLShortenerService(repo)
 	router := &Router{URLShortenerService: us}
 	e.GET("/:token", router.HandleGetURL)

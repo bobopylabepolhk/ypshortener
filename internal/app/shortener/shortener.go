@@ -3,21 +3,17 @@ package shortener
 import (
 	"errors"
 
+	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener/repo"
 	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 )
 
 type (
-	URLShortenerRepository interface {
-		CreateShortURL(token string, ogURL string)
-		GetOgURL(shortURL string) (string, error)
-	}
-
 	URLShortenerService struct {
-		repo URLShortenerRepository
+		repo repo.URLShortenerRepository
 	}
 )
 
-func NewURLShortenerService(repo *URLShortenerRepo) *URLShortenerService {
+func NewURLShortenerService(repo repo.URLShortenerRepository) *URLShortenerService {
 	return &URLShortenerService{
 		repo: repo,
 	}
@@ -28,9 +24,7 @@ func (us URLShortenerService) SaveShortURL(url string, token string) error {
 		return errors.New("not a valid url")
 	}
 
-	us.repo.CreateShortURL(token, url)
-
-	return nil
+	return us.repo.CreateShortURL(token, url)
 }
 
 func (us URLShortenerService) GetOriginalURL(shortURL string) (string, error) {

@@ -1,0 +1,5 @@
+development:
+  dialect: postgres
+  datasource: postgresql://postgres:postgres@localhost:5449/shortener?sslmode=disable
+  dir: internal/app/db/migrations
+  table: migrations

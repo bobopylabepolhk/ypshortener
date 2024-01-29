@@ -7,24 +7,27 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener"
+	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener/repo"
 )
 
 func TestGetOgURL(t *testing.T) {
 	t.Run("should return err if ogURL was never saved", func(t *testing.T) {
-		repo := shortener.NewURLShortenerRepo()
+		repo, err := repo.NewURLShortenerRepo()
+		assert.NoError(t, err)
 		us := shortener.NewURLShortenerService(repo)
 
-		_, err := us.GetOriginalURL("blahblah")
+		_, err = us.GetOriginalURL("blahblah")
 		assert.Error(t, err)
 	})
 
 	t.Run("should return ogURL, nil for a given token", func(t *testing.T) {
-		repo := shortener.NewURLShortenerRepo()
+		repo, err := repo.NewURLShortenerRepo()
+		assert.NoError(t, err)
 		us := shortener.NewURLShortenerService(repo)
 
 		token := "6Tg8oJ"
 		ogURL := "https://yandex.com/"
-		err := us.SaveShortURL(ogURL, token)
+		err = us.SaveShortURL(ogURL, token)
 		require.NoError(t, err)
 		r, err := us.GetOriginalURL(token)
 		assert.NoError(t, err)
@@ -34,7 +37,8 @@ func TestGetOgURL(t *testing.T) {
 }
 
 func TestSaveShortURL(t *testing.T) {
-	repo := shortener.NewURLShortenerRepo()
+	repo, err := repo.NewURLShortenerRepo()
+	assert.NoError(t, err)
 	us := shortener.NewURLShortenerService(repo)
 
 	t.Run("should return err if called with invalid url", func(t *testing.T) {

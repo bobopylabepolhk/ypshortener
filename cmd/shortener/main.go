@@ -24,14 +24,19 @@ func run() {
 	e.Use(defaultMiddleware.Decompress())
 
 	// db
-	db, err := db.New()
+	postgres, err := db.New()
 	if err != nil {
-		panic("failed to init db") // TODO don't panic
+		logger.Error("failed to init db")
+	}
+
+	err = db.Migrate(postgres)
+	if err != nil {
+		logger.Error("failed to run migrations")
 	}
 
 	// routers
-	shortener.NewRouter(e)
-	healthcheck.NewRouter(e, db)
+	shortener.NewRouter(e, postgres)
+	healthcheck.NewRouter(e, postgres)
 
 	e.Logger.Fatal(e.Start(config.Cfg.APIURL))
 }
