@@ -27,6 +27,33 @@ func (repo *URLShortenerRepoPostgres) GetOgURL(shortURL string) (string, error) 
 	return ogURL, nil
 }
 
+func (repo *URLShortenerRepoPostgres) SaveURLBatch(batch []URLBatch) error {
+	t, err := repo.db.Begin()
+
+	if err != nil {
+		return err
+	}
+
+	defer t.Rollback()
+
+	stmt, err := t.Prepare("INSERT INTO url (og_url, short_url) VALUES ($1, $2)")
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	for _, item := range batch {
+		_, err := stmt.Exec(item.OgURL, item.ShortURL)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return t.Commit()
+}
+
 func newURLShortenerRepoPostgres(db *sql.DB) *URLShortenerRepoPostgres {
 	return &URLShortenerRepoPostgres{db: db}
 }

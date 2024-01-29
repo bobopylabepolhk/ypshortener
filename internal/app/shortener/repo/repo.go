@@ -18,9 +18,15 @@ type (
 
 	option func(*URLShortenerRepositoryConfig)
 
+	URLBatch struct {
+		ShortURL string
+		OgURL    string
+	}
+
 	URLShortenerRepository interface {
 		CreateShortURL(token string, ogURL string) error
 		GetOgURL(shortURL string) (string, error)
+		SaveURLBatch(batch []URLBatch) error
 	}
 )
 

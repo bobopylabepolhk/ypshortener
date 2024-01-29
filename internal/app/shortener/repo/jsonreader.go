@@ -34,6 +34,18 @@ func (repoWithReader *URLShortenerRepoWithJsonReader) GetOgURL(shortURL string) 
 	return repoWithReader.repo.GetOgURL(shortURL)
 }
 
+func (repoWithReader *URLShortenerRepoWithJsonReader) SaveURLBatch(batch []URLBatch) error {
+	for _, item := range batch {
+		err := repoWithReader.jsonReader.WriteRow(item)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return repoWithReader.repo.SaveURLBatch(batch)
+}
+
 func newURLShortenerRepoWithReader(storagePath string) (*URLShortenerRepoWithJsonReader, error) {
 	JSONReader, err := jsonreader.NewJSONReader(storagePath)
 	if err != nil {

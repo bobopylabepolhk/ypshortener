@@ -17,6 +17,14 @@ func (repo *URLShortenerRepoMemory) GetOgURL(shortURL string) (string, error) {
 	return "", errShortUrlDoesNotExist(shortURL)
 }
 
+func (repo *URLShortenerRepoMemory) SaveURLBatch(batch []URLBatch) error {
+	for _, item := range batch {
+		repo.urls[item.ShortURL] = item.OgURL
+	}
+
+	return nil
+}
+
 func newURLShortenerRepoMemory() *URLShortenerRepoMemory {
 	return &URLShortenerRepoMemory{urls: make(map[string]string)}
 }
