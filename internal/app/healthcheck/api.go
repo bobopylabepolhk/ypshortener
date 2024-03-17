@@ -9,7 +9,7 @@ import (
 
 type (
 	Healthcheck interface {
-		PingDb() error
+		PingDB() error
 	}
 
 	Router struct {
@@ -18,7 +18,7 @@ type (
 )
 
 func (router *Router) HandlePing(ctx echo.Context) error {
-	err := router.HealthcheckService.PingDb()
+	err := router.HealthcheckService.PingDB()
 
 	if err != nil {
 		return echo.ErrInternalServerError

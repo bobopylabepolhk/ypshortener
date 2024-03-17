@@ -2,9 +2,11 @@ package shortener
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 
@@ -19,6 +21,7 @@ type (
 		SaveShortURL(url string, token string) error
 		GetOriginalURL(shortURL string) (string, error)
 		SaveURLBatch(batch []ShortenBatchRequestDTO) ([]ShortenBatchResponseDTO, error)
+		GetExistingShortURL(ogURL string) (string, error)
 	}
 
 	Router struct {
@@ -44,10 +47,20 @@ func (router *Router) HandleShortenURL(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
+	ogURLStr := strings.Clone(string(ogURL))
 	token := urlutils.GetShortURLToken()
-	err = router.URLShortenerService.SaveShortURL(string(ogURL), token)
+	err = router.URLShortenerService.SaveShortURL(ogURLStr, token)
 
 	if err != nil {
+		if errors.Is(err, repo.ErrDuplicateURL) {
+			shortURL, err := router.URLShortenerService.GetExistingShortURL(ogURLStr)
+			if err != nil {
+				return echo.ErrInternalServerError
+			}
+
+			return ctx.String(http.StatusConflict, shortURL)
+		}
+
 		return echo.ErrBadRequest
 	}
 
@@ -71,10 +84,20 @@ func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
 		return echo.ErrUnprocessableEntity
 	}
 
+	ogURLStr := strings.Clone(data.URL)
 	token := urlutils.GetShortURLToken()
-	err = router.URLShortenerService.SaveShortURL(data.URL, token)
+	err = router.URLShortenerService.SaveShortURL(ogURLStr, token)
 
 	if err != nil {
+		if errors.Is(err, repo.ErrDuplicateURL) {
+			shortURL, err := router.URLShortenerService.GetExistingShortURL(ogURLStr)
+			if err != nil {
+				return echo.ErrInternalServerError
+			}
+
+			return ctx.JSON(http.StatusConflict, ShortenURLResponseDTO{Result: shortURL})
+		}
+
 		return echo.ErrBadRequest
 	}
 
@@ -85,12 +108,12 @@ func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
 }
 
 type ShortenBatchRequestDTO struct {
-	CorrelationId string `json:"correlation_id"`
+	CorrelationID string `json:"correlation_id"`
 	OgURL         string `json:"original_url"`
 }
 
 type ShortenBatchResponseDTO struct {
-	CorrelationId string `json:"correlation_id"`
+	CorrelationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }
 

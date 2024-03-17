@@ -10,7 +10,7 @@ type (
 	}
 )
 
-func (hs *HealthcheckService) PingDb() error {
+func (hs *HealthcheckService) PingDB() error {
 	return hs.repo.Ping()
 }
 

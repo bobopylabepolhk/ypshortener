@@ -14,7 +14,7 @@ func (repo *URLShortenerRepoMemory) GetOgURL(shortURL string) (string, error) {
 		return v, nil
 	}
 
-	return "", errShortUrlDoesNotExist(shortURL)
+	return "", errShortURLDoesNotExist(shortURL)
 }
 
 func (repo *URLShortenerRepoMemory) SaveURLBatch(batch []URLBatch) error {
@@ -23,6 +23,16 @@ func (repo *URLShortenerRepoMemory) SaveURLBatch(batch []URLBatch) error {
 	}
 
 	return nil
+}
+
+func (repo *URLShortenerRepoMemory) FindTokenByOgURL(ogURL string) (string, error) {
+	for short, og := range repo.urls {
+		if og == ogURL {
+			return short, nil
+		}
+	}
+
+	return "", errOgURLNotFound(ogURL)
 }
 
 func newURLShortenerRepoMemory() *URLShortenerRepoMemory {

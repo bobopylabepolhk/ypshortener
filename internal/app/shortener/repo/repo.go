@@ -27,17 +27,22 @@ type (
 		CreateShortURL(token string, ogURL string) error
 		GetOgURL(shortURL string) (string, error)
 		SaveURLBatch(batch []URLBatch) error
+		FindTokenByOgURL(ogURL string) (string, error)
 	}
 )
 
 const (
 	RepoMemory URLShortenerRepositoryKind = iota
 	RepoPostgres
-	RepoWithJsonReader
+	RepoWithJSONReader
 )
 
-func errShortUrlDoesNotExist(shortURL string) error {
+func errShortURLDoesNotExist(shortURL string) error {
 	return fmt.Errorf("short url %s was never created", shortURL)
+}
+
+func errOgURLNotFound(ogURL string) error {
+	return fmt.Errorf("original url %s was not found", ogURL)
 }
 
 func NewURLShortenerRepo(options ...option) (URLShortenerRepository, error) {
@@ -54,17 +59,17 @@ func NewURLShortenerRepo(options ...option) (URLShortenerRepository, error) {
 		return newURLShortenerRepoMemory(), nil
 	case RepoPostgres:
 		return newURLShortenerRepoPostgres(repoConfig.db), nil
-	case RepoWithJsonReader:
+	case RepoWithJSONReader:
 		return newURLShortenerRepoWithReader(repoConfig.storagePath)
 	default:
 		return nil, fmt.Errorf("invalid URLShortenerStorageRepository kind")
 	}
 }
 
-func WithJsonReader() option {
+func WithJSONReader() option {
 	return func(repoCfg *URLShortenerRepositoryConfig) {
 		if config.Cfg.URLStoragePath != "" {
-			repoCfg.kind = RepoWithJsonReader
+			repoCfg.kind = RepoWithJSONReader
 			repoCfg.storagePath = config.Cfg.URLStoragePath
 		}
 	}
@@ -78,5 +83,5 @@ func WithPostgres(db *sql.DB) option {
 		}
 	}
 
-	return WithJsonReader()
+	return WithJSONReader()
 }

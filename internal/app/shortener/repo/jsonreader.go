@@ -8,7 +8,7 @@ type (
 		OgURL    string `json:"original_url"`
 	}
 
-	URLShortenerRepoWithJsonReader struct {
+	URLShortenerRepoWithJSONReader struct {
 		jsonReader JSONDbReader
 		repo       URLShortenerRepoMemory
 	}
@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func (repoWithReader *URLShortenerRepoWithJsonReader) CreateShortURL(token string, ogURL string) error {
+func (repoWithReader *URLShortenerRepoWithJSONReader) CreateShortURL(token string, ogURL string) error {
 	data := URLShortenerRow{ShortURL: token, OgURL: ogURL}
 	err := repoWithReader.repo.CreateShortURL(token, ogURL)
 
@@ -30,11 +30,15 @@ func (repoWithReader *URLShortenerRepoWithJsonReader) CreateShortURL(token strin
 	return repoWithReader.jsonReader.WriteRow(data)
 }
 
-func (repoWithReader *URLShortenerRepoWithJsonReader) GetOgURL(shortURL string) (string, error) {
+func (repoWithReader *URLShortenerRepoWithJSONReader) GetOgURL(shortURL string) (string, error) {
 	return repoWithReader.repo.GetOgURL(shortURL)
 }
 
-func (repoWithReader *URLShortenerRepoWithJsonReader) SaveURLBatch(batch []URLBatch) error {
+func (repoWithReader *URLShortenerRepoWithJSONReader) FindTokenByOgURL(ogURL string) (string, error) {
+	return repoWithReader.repo.FindTokenByOgURL(ogURL)
+}
+
+func (repoWithReader *URLShortenerRepoWithJSONReader) SaveURLBatch(batch []URLBatch) error {
 	for _, item := range batch {
 		err := repoWithReader.jsonReader.WriteRow(item)
 
@@ -46,7 +50,7 @@ func (repoWithReader *URLShortenerRepoWithJsonReader) SaveURLBatch(batch []URLBa
 	return repoWithReader.repo.SaveURLBatch(batch)
 }
 
-func newURLShortenerRepoWithReader(storagePath string) (*URLShortenerRepoWithJsonReader, error) {
+func newURLShortenerRepoWithReader(storagePath string) (*URLShortenerRepoWithJSONReader, error) {
 	JSONReader, err := jsonreader.NewJSONReader(storagePath)
 	if err != nil {
 		return nil, err
@@ -67,5 +71,5 @@ func newURLShortenerRepoWithReader(storagePath string) (*URLShortenerRepoWithJso
 	}
 
 	repo := URLShortenerRepoMemory{urls: urls}
-	return &URLShortenerRepoWithJsonReader{repo: repo, jsonReader: JSONReader}, nil
+	return &URLShortenerRepoWithJSONReader{repo: repo, jsonReader: JSONReader}, nil
 }

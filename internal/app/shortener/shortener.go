@@ -2,7 +2,9 @@ package shortener
 
 import (
 	"errors"
+	"fmt"
 
+	"github.com/bobopylabepolhk/ypshortener/config"
 	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener/repo"
 	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 )
@@ -31,13 +33,18 @@ func (us URLShortenerService) GetOriginalURL(shortURL string) (string, error) {
 	return us.repo.GetOgURL(shortURL)
 }
 
+func (us URLShortenerService) GetExistingShortURL(ogURL string) (string, error) {
+	token, err := us.repo.FindTokenByOgURL(ogURL)
+	return fmt.Sprintf("%s/%s", config.Cfg.BaseURL, token), err
+}
+
 func (us URLShortenerService) SaveURLBatch(batch []ShortenBatchRequestDTO) ([]ShortenBatchResponseDTO, error) {
 	data := make([]repo.URLBatch, 0)
 	res := make([]ShortenBatchResponseDTO, 0)
 	for _, item := range batch {
 		token := urlutils.GetShortURLToken()
 		data = append(data, repo.URLBatch{ShortURL: token, OgURL: item.OgURL})
-		res = append(res, ShortenBatchResponseDTO{ShortURL: token, CorrelationId: item.CorrelationId})
+		res = append(res, ShortenBatchResponseDTO{ShortURL: token, CorrelationID: item.CorrelationID})
 	}
 
 	err := us.repo.SaveURLBatch(data)
