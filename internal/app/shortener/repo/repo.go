@@ -71,6 +71,8 @@ func WithJSONReader() option {
 		if config.Cfg.URLStoragePath != "" {
 			repoCfg.kind = RepoWithJSONReader
 			repoCfg.storagePath = config.Cfg.URLStoragePath
+		} else {
+			repoCfg.kind = RepoMemory
 		}
 	}
 }

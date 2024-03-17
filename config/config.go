@@ -12,8 +12,8 @@ type Config struct {
 	APIURL         string `env:"SERVER_ADDRESS" env-default:"localhost:8080"`
 	BaseURL        string `env:"BASE_URL" env-default:"http://localhost:8080"`
 	Debug          bool   `env:"DEBUG" env-default:"false"`
-	URLStoragePath string `env:"FILE_STORAGE_PATH" env-default:"/tmp/short-url-db.json"`
-	PostgresDSN    string `env:"DATABASE_DSN" env-default:"postgresql://postgres:postgres@localhost:5449/shortener?sslmode=disable"`
+	URLStoragePath string `env:"FILE_STORAGE_PATH"`
+	PostgresDSN    string `env:"DATABASE_DSN"`
 }
 
 var Cfg Config

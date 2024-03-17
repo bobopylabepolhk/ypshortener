@@ -44,7 +44,8 @@ func (us URLShortenerService) SaveURLBatch(batch []ShortenBatchRequestDTO) ([]Sh
 	for _, item := range batch {
 		token := urlutils.GetShortURLToken()
 		data = append(data, repo.URLBatch{ShortURL: token, OgURL: item.OgURL})
-		res = append(res, ShortenBatchResponseDTO{ShortURL: token, CorrelationID: item.CorrelationID})
+		shortURL := fmt.Sprintf("%s/%s", config.Cfg.BaseURL, token)
+		res = append(res, ShortenBatchResponseDTO{ShortURL: shortURL, CorrelationID: item.CorrelationID})
 	}
 
 	err := us.repo.SaveURLBatch(data)

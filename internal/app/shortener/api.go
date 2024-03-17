@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 
@@ -47,10 +46,9 @@ func (router *Router) HandleShortenURL(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	ogURLStr := strings.Clone(string(ogURL))
+	ogURLStr := string(ogURL)
 	token := urlutils.GetShortURLToken()
 	err = router.URLShortenerService.SaveShortURL(ogURLStr, token)
-
 	if err != nil {
 		if errors.Is(err, repo.ErrDuplicateURL) {
 			shortURL, err := router.URLShortenerService.GetExistingShortURL(ogURLStr)
@@ -84,7 +82,7 @@ func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
 		return echo.ErrUnprocessableEntity
 	}
 
-	ogURLStr := strings.Clone(data.URL)
+	ogURLStr := data.URL
 	token := urlutils.GetShortURLToken()
 	err = router.URLShortenerService.SaveShortURL(ogURLStr, token)
 
