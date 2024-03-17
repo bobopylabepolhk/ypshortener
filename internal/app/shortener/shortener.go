@@ -2,18 +2,25 @@ package shortener
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 )
 
-type URLShortenerService struct {
-	urls map[string]string
-}
+type (
+	URLShortenerRepository interface {
+		CreateShortURL(token string, ogURL string)
+		GetOgURL(shortURL string) (string, error)
+	}
+
+	URLShortenerService struct {
+		repo URLShortenerRepository
+	}
+)
 
 func NewURLShortenerService() *URLShortenerService {
+	repo := NewURLShortenerRepo()
 	return &URLShortenerService{
-		urls: make(map[string]string),
+		repo: repo,
 	}
 }
 
@@ -22,17 +29,11 @@ func (us URLShortenerService) SaveShortURL(url string, token string) error {
 		return errors.New("not a valid url")
 	}
 
-	us.urls[token] = url
+	us.repo.CreateShortURL(token, url)
 
 	return nil
 }
 
 func (us URLShortenerService) GetOriginalURL(shortURL string) (string, error) {
-	if v, ok := us.urls[shortURL]; ok {
-		return v, nil
-	}
-
-	msg := fmt.Sprintf("short url %s was never created", shortURL)
-
-	return "", errors.New(msg)
+	return us.repo.GetOgURL(shortURL)
 }

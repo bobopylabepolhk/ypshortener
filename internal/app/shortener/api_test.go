@@ -1,6 +1,8 @@
 package shortener_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -76,10 +78,51 @@ func TestHandleShortenURL(t *testing.T) {
 		assert.NoError(t, err)
 
 		defer resp2.Body.Close()
-		body2, err := io.ReadAll(resp1.Body)
+		body2, err := io.ReadAll(resp2.Body)
 
 		assert.NoError(t, err)
 		assert.NotEqual(t, string(body1), string(body2))
+	})
+}
+
+func TestHandleJSONShortenURl(t *testing.T) {
+	t.Run("shoud send 422 code when body isn't provided", func(t *testing.T) {
+		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService()}
+
+		rec := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/shorten", nil)
+
+		e := echo.New()
+		ctx := e.NewContext(req, rec)
+		err := router.HandleJSONShortenURL(ctx)
+
+		assert.EqualError(t, err, echo.ErrUnprocessableEntity.Error())
+	})
+
+	t.Run("shoud send 422 code when json is missing url field", func(t *testing.T) {
+		router := shortener.Router{URLShortenerService: shortener.NewURLShortenerService()}
+		e := echo.New()
+
+		tests := []map[string]interface{}{
+			{
+				"urll": "https://practicum.yandex.ru",
+			},
+			{
+				"url": "",
+			},
+			{},
+		}
+		for _, test := range tests {
+			data, _ := json.Marshal(test)
+
+			rec := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewReader(data))
+
+			ctx := e.NewContext(req, rec)
+			err := router.HandleJSONShortenURL(ctx)
+
+			assert.EqualError(t, err, echo.ErrUnprocessableEntity.Error())
+		}
 	})
 }
 
