@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:14.2
+    ports:
+      - "5449:5432"
+    env_file:
+      - .env
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    volumes:
+      - etoso-pg-data:/var/lib/postgresql/data
+
+volumes:
+  etoso-pg-data:
+    driver: local

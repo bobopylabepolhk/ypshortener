@@ -1,20 +1,25 @@
 package shortener
 
 import (
-	"fmt"
+	"context"
+	"database/sql"
+	"errors"
 	"io"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/bobopylabepolhk/ypshortener/config"
+	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener/repo"
+	"github.com/bobopylabepolhk/ypshortener/pkg/logger"
 	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 )
 
 type (
 	URLShortener interface {
-		SaveShortURL(url string, token string) error
-		GetOriginalURL(shortURL string) (string, error)
+		SaveShortURL(ctx context.Context, url string, token string) (string, error)
+		GetOriginalURL(ctx context.Context, shortURL string) (string, error)
+		SaveURLBatch(ctx context.Context, batch []ShortenBatchRequestDTO) ([]ShortenBatchResponseDTO, error)
+		GetExistingShortURL(ctx context.Context, ogURL string) (string, error)
 	}
 
 	Router struct {
@@ -25,7 +30,7 @@ type (
 func (router *Router) HandleGetURL(ctx echo.Context) error {
 	token := ctx.Param("token")
 
-	ogURL, err := router.URLShortenerService.GetOriginalURL(token)
+	ogURL, err := router.URLShortenerService.GetOriginalURL(ctx.Request().Context(), token)
 	if err != nil {
 		return echo.ErrNotFound
 	}
@@ -40,14 +45,22 @@ func (router *Router) HandleShortenURL(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
+	ogURLStr := string(ogURL)
 	token := urlutils.GetShortURLToken()
-	err = router.URLShortenerService.SaveShortURL(string(ogURL), token)
-
+	res, err := router.URLShortenerService.SaveShortURL(ctx.Request().Context(), ogURLStr, token)
 	if err != nil {
+		if errors.Is(err, repo.ErrDuplicateURL) {
+			shortURL, err := router.URLShortenerService.GetExistingShortURL(ctx.Request().Context(), ogURLStr)
+			if err != nil {
+				return echo.ErrInternalServerError
+			}
+
+			return ctx.String(http.StatusConflict, shortURL)
+		}
+
 		return echo.ErrBadRequest
 	}
 
-	res := fmt.Sprintf("%s/%s", config.Cfg.BaseURL, token)
 	return ctx.String(http.StatusCreated, res)
 }
 
@@ -61,30 +74,71 @@ type ShortenURLResponseDTO struct {
 
 func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
 	data := new(ShortenURLRequestDTO)
-	err := ctx.Bind(data)
+	err := ctx.Bind(&data)
 
 	if err != nil || data.URL == "" {
 		return echo.ErrUnprocessableEntity
 	}
 
+	ogURLStr := data.URL
 	token := urlutils.GetShortURLToken()
-	err = router.URLShortenerService.SaveShortURL(data.URL, token)
+	shortURL, err := router.URLShortenerService.SaveShortURL(ctx.Request().Context(), ogURLStr, token)
 
 	if err != nil {
+		if errors.Is(err, repo.ErrDuplicateURL) {
+			shortURL, err := router.URLShortenerService.GetExistingShortURL(ctx.Request().Context(), ogURLStr)
+			if err != nil {
+				return echo.ErrInternalServerError
+			}
+
+			return ctx.JSON(http.StatusConflict, ShortenURLResponseDTO{Result: shortURL})
+		}
+
 		return echo.ErrBadRequest
 	}
 
-	shortURL := fmt.Sprintf("%s/%s", config.Cfg.BaseURL, token)
 	res := ShortenURLResponseDTO{Result: shortURL}
 
 	return ctx.JSON(http.StatusCreated, res)
 }
 
-func NewRouter(e *echo.Echo) {
-	us := NewURLShortenerService()
+type ShortenBatchRequestDTO struct {
+	CorrelationID string `json:"correlation_id"`
+	OgURL         string `json:"original_url"`
+}
+
+type ShortenBatchResponseDTO struct {
+	CorrelationID string `json:"correlation_id"`
+	ShortURL      string `json:"short_url"`
+}
+
+func (router *Router) HandleBatchShortenURL(ctx echo.Context) error {
+	data := make([]ShortenBatchRequestDTO, 0)
+	err := ctx.Bind(&data)
+
+	if err != nil {
+		return echo.ErrUnprocessableEntity
+	}
+
+	res, err := router.URLShortenerService.SaveURLBatch(ctx.Request().Context(), data)
+
+	if err != nil {
+		return echo.ErrInternalServerError
+	}
+
+	return ctx.JSON(http.StatusCreated, res)
+}
+
+func NewRouter(e *echo.Echo, db *sql.DB) {
+	repo, err := repo.NewURLShortenerRepo(repo.WithPostgres(db))
+	if err != nil {
+		logger.Fatal("failed to initialize URLShortenerRepository")
+	}
+	us := NewURLShortenerService(repo)
 	router := &Router{URLShortenerService: us}
 	e.GET("/:token", router.HandleGetURL)
 	e.POST("/", router.HandleShortenURL)
 
 	e.POST("/api/shorten", router.HandleJSONShortenURL)
+	e.POST("/api/shorten/batch", router.HandleBatchShortenURL)
 }
