@@ -1,6 +1,7 @@
 package shortener_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,7 +17,7 @@ func TestGetOgURL(t *testing.T) {
 		assert.NoError(t, err)
 		us := shortener.NewURLShortenerService(repo)
 
-		_, err = us.GetOriginalURL("blahblah")
+		_, err = us.GetOriginalURL(context.Background(), "blahblah")
 		assert.Error(t, err)
 	})
 
@@ -27,9 +28,9 @@ func TestGetOgURL(t *testing.T) {
 
 		token := "6Tg8oJ"
 		ogURL := "https://yandex.com/"
-		_, err = us.SaveShortURL(ogURL, token)
+		_, err = us.SaveShortURL(context.Background(), ogURL, token)
 		require.NoError(t, err)
-		r, err := us.GetOriginalURL(token)
+		r, err := us.GetOriginalURL(context.Background(), token)
 		assert.NoError(t, err)
 		assert.Equal(t, ogURL, r)
 	})
@@ -42,7 +43,7 @@ func TestSaveShortURL(t *testing.T) {
 	us := shortener.NewURLShortenerService(repo)
 
 	t.Run("should return err if called with invalid url", func(t *testing.T) {
-		_, err := us.SaveShortURL("blahblah", "YUG76a")
+		_, err := us.SaveShortURL(context.Background(), "blahblah", "YUG76a")
 		assert.Error(t, err, t.Name())
 	})
 }

@@ -1,6 +1,7 @@
 package shortener
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"io"
@@ -15,10 +16,10 @@ import (
 
 type (
 	URLShortener interface {
-		SaveShortURL(url string, token string) (string, error)
-		GetOriginalURL(shortURL string) (string, error)
-		SaveURLBatch(batch []ShortenBatchRequestDTO) ([]ShortenBatchResponseDTO, error)
-		GetExistingShortURL(ogURL string) (string, error)
+		SaveShortURL(ctx context.Context, url string, token string) (string, error)
+		GetOriginalURL(ctx context.Context, shortURL string) (string, error)
+		SaveURLBatch(ctx context.Context, batch []ShortenBatchRequestDTO) ([]ShortenBatchResponseDTO, error)
+		GetExistingShortURL(ctx context.Context, ogURL string) (string, error)
 	}
 
 	Router struct {
@@ -29,7 +30,7 @@ type (
 func (router *Router) HandleGetURL(ctx echo.Context) error {
 	token := ctx.Param("token")
 
-	ogURL, err := router.URLShortenerService.GetOriginalURL(token)
+	ogURL, err := router.URLShortenerService.GetOriginalURL(ctx.Request().Context(), token)
 	if err != nil {
 		return echo.ErrNotFound
 	}
@@ -46,10 +47,10 @@ func (router *Router) HandleShortenURL(ctx echo.Context) error {
 
 	ogURLStr := string(ogURL)
 	token := urlutils.GetShortURLToken()
-	res, err := router.URLShortenerService.SaveShortURL(ogURLStr, token)
+	res, err := router.URLShortenerService.SaveShortURL(ctx.Request().Context(), ogURLStr, token)
 	if err != nil {
 		if errors.Is(err, repo.ErrDuplicateURL) {
-			shortURL, err := router.URLShortenerService.GetExistingShortURL(ogURLStr)
+			shortURL, err := router.URLShortenerService.GetExistingShortURL(ctx.Request().Context(), ogURLStr)
 			if err != nil {
 				return echo.ErrInternalServerError
 			}
@@ -81,11 +82,11 @@ func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
 
 	ogURLStr := data.URL
 	token := urlutils.GetShortURLToken()
-	shortURL, err := router.URLShortenerService.SaveShortURL(ogURLStr, token)
+	shortURL, err := router.URLShortenerService.SaveShortURL(ctx.Request().Context(), ogURLStr, token)
 
 	if err != nil {
 		if errors.Is(err, repo.ErrDuplicateURL) {
-			shortURL, err := router.URLShortenerService.GetExistingShortURL(ogURLStr)
+			shortURL, err := router.URLShortenerService.GetExistingShortURL(ctx.Request().Context(), ogURLStr)
 			if err != nil {
 				return echo.ErrInternalServerError
 			}
@@ -119,7 +120,7 @@ func (router *Router) HandleBatchShortenURL(ctx echo.Context) error {
 		return echo.ErrUnprocessableEntity
 	}
 
-	res, err := router.URLShortenerService.SaveURLBatch(data)
+	res, err := router.URLShortenerService.SaveURLBatch(ctx.Request().Context(), data)
 
 	if err != nil {
 		return echo.ErrInternalServerError

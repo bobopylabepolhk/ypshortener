@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/bobopylabepolhk/ypshortener/pkg/jsonreader"
@@ -23,9 +24,9 @@ type (
 	}
 )
 
-func (repoWithReader *URLShortenerRepoWithJSONReader) CreateShortURL(token string, ogURL string) error {
+func (repoWithReader *URLShortenerRepoWithJSONReader) CreateShortURL(ctx context.Context, token string, ogURL string) error {
 	data := URLShortenerRow{ShortURL: token, OgURL: ogURL}
-	err := repoWithReader.repo.CreateShortURL(token, ogURL)
+	err := repoWithReader.repo.CreateShortURL(ctx, token, ogURL)
 
 	if err != nil {
 		return fmt.Errorf("jsonReader.CreateShortURL: %w", err)
@@ -34,15 +35,15 @@ func (repoWithReader *URLShortenerRepoWithJSONReader) CreateShortURL(token strin
 	return repoWithReader.jsonReader.WriteRow(data)
 }
 
-func (repoWithReader *URLShortenerRepoWithJSONReader) GetOgURL(shortURL string) (string, error) {
-	return repoWithReader.repo.GetOgURL(shortURL)
+func (repoWithReader *URLShortenerRepoWithJSONReader) GetOgURL(ctx context.Context, shortURL string) (string, error) {
+	return repoWithReader.repo.GetOgURL(ctx, shortURL)
 }
 
-func (repoWithReader *URLShortenerRepoWithJSONReader) FindTokenByOgURL(ogURL string) (string, error) {
-	return repoWithReader.repo.FindTokenByOgURL(ogURL)
+func (repoWithReader *URLShortenerRepoWithJSONReader) FindTokenByOgURL(ctx context.Context, ogURL string) (string, error) {
+	return repoWithReader.repo.FindTokenByOgURL(ctx, ogURL)
 }
 
-func (repoWithReader *URLShortenerRepoWithJSONReader) SaveURLBatch(batch []URLBatch) error {
+func (repoWithReader *URLShortenerRepoWithJSONReader) SaveURLBatch(ctx context.Context, batch []URLBatch) error {
 	for _, item := range batch {
 		err := repoWithReader.jsonReader.WriteRow(item)
 
@@ -51,7 +52,7 @@ func (repoWithReader *URLShortenerRepoWithJSONReader) SaveURLBatch(batch []URLBa
 		}
 	}
 
-	return repoWithReader.repo.SaveURLBatch(batch)
+	return repoWithReader.repo.SaveURLBatch(ctx, batch)
 }
 
 func newURLShortenerRepoWithReader(storagePath string) (*URLShortenerRepoWithJSONReader, error) {

@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -12,8 +13,9 @@ type URLShortenerRepoPostgres struct {
 
 var ErrDuplicateURL = errors.New("shortURL already exists for this ogURL")
 
-func (repo *URLShortenerRepoPostgres) CreateShortURL(token string, ogURL string) error {
-	res, err := repo.db.Exec(
+func (repo *URLShortenerRepoPostgres) CreateShortURL(ctx context.Context, token string, ogURL string) error {
+	res, err := repo.db.ExecContext(
+		ctx,
 		"INSERT INTO url (og_url, short_url) VALUES ($1, $2) ON CONFLICT DO NOTHING",
 		ogURL,
 		token,
@@ -35,9 +37,9 @@ func (repo *URLShortenerRepoPostgres) CreateShortURL(token string, ogURL string)
 	return nil
 }
 
-func (repo *URLShortenerRepoPostgres) GetOgURL(shortURL string) (string, error) {
+func (repo *URLShortenerRepoPostgres) GetOgURL(ctx context.Context, shortURL string) (string, error) {
 	var ogURL string
-	row := repo.db.QueryRow("SELECT og_url FROM url WHERE short_url = $1", shortURL)
+	row := repo.db.QueryRowContext(ctx, "SELECT og_url FROM url WHERE short_url = $1", shortURL)
 	err := row.Scan(&ogURL)
 
 	if err != nil {
@@ -47,8 +49,8 @@ func (repo *URLShortenerRepoPostgres) GetOgURL(shortURL string) (string, error) 
 	return ogURL, nil
 }
 
-func (repo *URLShortenerRepoPostgres) SaveURLBatch(batch []URLBatch) error {
-	t, err := repo.db.Begin()
+func (repo *URLShortenerRepoPostgres) SaveURLBatch(ctx context.Context, batch []URLBatch) error {
+	t, err := repo.db.BeginTx(ctx, nil)
 
 	if err != nil {
 		return fmt.Errorf("postgres.SaveURLBatch: %w", err)
@@ -64,7 +66,7 @@ func (repo *URLShortenerRepoPostgres) SaveURLBatch(batch []URLBatch) error {
 	defer stmt.Close()
 
 	for _, item := range batch {
-		_, err := stmt.Exec(item.OgURL, item.ShortURL)
+		_, err := stmt.ExecContext(ctx, item.OgURL, item.ShortURL)
 
 		if err != nil {
 			return fmt.Errorf("postgres.SaveURLBatch: %w", err)
@@ -74,9 +76,9 @@ func (repo *URLShortenerRepoPostgres) SaveURLBatch(batch []URLBatch) error {
 	return t.Commit()
 }
 
-func (repo *URLShortenerRepoPostgres) FindTokenByOgURL(ogURL string) (string, error) {
+func (repo *URLShortenerRepoPostgres) FindTokenByOgURL(ctx context.Context, ogURL string) (string, error) {
 	var res string
-	row := repo.db.QueryRow("SELECT short_url FROM url WHERE og_url = $1", ogURL)
+	row := repo.db.QueryRowContext(ctx, "SELECT short_url FROM url WHERE og_url = $1", ogURL)
 	err := row.Scan(&res)
 
 	if err != nil {
