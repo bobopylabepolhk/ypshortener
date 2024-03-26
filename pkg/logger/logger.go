@@ -6,7 +6,7 @@ import (
 	"github.com/bobopylabepolhk/ypshortener/config"
 )
 
-var zapLogger *zap.SugaredLogger
+var zapLogger *zap.Logger
 
 func New() *zap.SugaredLogger {
 	logger := zap.Must(zap.NewProduction())
@@ -15,23 +15,23 @@ func New() *zap.SugaredLogger {
 		logger = zap.Must(zap.NewDevelopment())
 	}
 
-	zapLogger = logger.Sugar()
+	zapLogger = logger
 
-	return zapLogger
+	return logger.Sugar()
 }
 
-func Debug(args ...interface{}) {
-	zapLogger.Debug(args)
+func Debug(m string, v ...zap.Field) {
+	zapLogger.Debug(m, v...)
 }
 
-func Info(args ...interface{}) {
-	zapLogger.Debug(args)
+func Info(m string, v ...zap.Field) {
+	zapLogger.Debug(m, v...)
 }
 
-func Error(args ...interface{}) {
-	zapLogger.Debug(args)
+func Error(m string, v ...zap.Field) {
+	zapLogger.Debug(m, v...)
 }
 
-func Fatal(args ...interface{}) {
-	zapLogger.Debug(args)
+func Fatal(m string, v ...zap.Field) {
+	zapLogger.Debug(m, v...)
 }

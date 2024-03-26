@@ -1,6 +1,10 @@
 package repo
 
-import "github.com/bobopylabepolhk/ypshortener/pkg/jsonreader"
+import (
+	"fmt"
+
+	"github.com/bobopylabepolhk/ypshortener/pkg/jsonreader"
+)
 
 type (
 	URLShortenerRow struct {
@@ -24,7 +28,7 @@ func (repoWithReader *URLShortenerRepoWithJSONReader) CreateShortURL(token strin
 	err := repoWithReader.repo.CreateShortURL(token, ogURL)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("jsonReader.CreateShortURL: %w", err)
 	}
 
 	return repoWithReader.jsonReader.WriteRow(data)
@@ -43,7 +47,7 @@ func (repoWithReader *URLShortenerRepoWithJSONReader) SaveURLBatch(batch []URLBa
 		err := repoWithReader.jsonReader.WriteRow(item)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("jsonReader.SaveURLBatch: %w", err)
 		}
 	}
 
@@ -53,14 +57,14 @@ func (repoWithReader *URLShortenerRepoWithJSONReader) SaveURLBatch(batch []URLBa
 func newURLShortenerRepoWithReader(storagePath string) (*URLShortenerRepoWithJSONReader, error) {
 	JSONReader, err := jsonreader.NewJSONReader(storagePath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("jsonReader: %w", err)
 	}
 
 	urls := map[string]string{}
 	json, err := JSONReader.InitFromFile()
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("jsonReader: %w", err)
 	}
 
 	for _, item := range json {

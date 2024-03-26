@@ -21,12 +21,12 @@ func NewURLShortenerService(repo repo.URLShortenerRepository) *URLShortenerServi
 	}
 }
 
-func (us URLShortenerService) SaveShortURL(url string, token string) error {
+func (us URLShortenerService) SaveShortURL(url string, token string) (string, error) {
 	if !urlutils.ValidateURL(url) {
-		return errors.New("not a valid url")
+		return "", errors.New("not a valid url")
 	}
 
-	return us.repo.CreateShortURL(token, url)
+	return fmt.Sprintf("%s/%s", config.Cfg.BaseURL, token), us.repo.CreateShortURL(token, url)
 }
 
 func (us URLShortenerService) GetOriginalURL(shortURL string) (string, error) {

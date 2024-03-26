@@ -3,13 +3,11 @@ package shortener
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/bobopylabepolhk/ypshortener/config"
 	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener/repo"
 	"github.com/bobopylabepolhk/ypshortener/pkg/logger"
 	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
@@ -17,7 +15,7 @@ import (
 
 type (
 	URLShortener interface {
-		SaveShortURL(url string, token string) error
+		SaveShortURL(url string, token string) (string, error)
 		GetOriginalURL(shortURL string) (string, error)
 		SaveURLBatch(batch []ShortenBatchRequestDTO) ([]ShortenBatchResponseDTO, error)
 		GetExistingShortURL(ogURL string) (string, error)
@@ -48,7 +46,7 @@ func (router *Router) HandleShortenURL(ctx echo.Context) error {
 
 	ogURLStr := string(ogURL)
 	token := urlutils.GetShortURLToken()
-	err = router.URLShortenerService.SaveShortURL(ogURLStr, token)
+	res, err := router.URLShortenerService.SaveShortURL(ogURLStr, token)
 	if err != nil {
 		if errors.Is(err, repo.ErrDuplicateURL) {
 			shortURL, err := router.URLShortenerService.GetExistingShortURL(ogURLStr)
@@ -62,7 +60,6 @@ func (router *Router) HandleShortenURL(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	res := fmt.Sprintf("%s/%s", config.Cfg.BaseURL, token)
 	return ctx.String(http.StatusCreated, res)
 }
 
@@ -84,7 +81,7 @@ func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
 
 	ogURLStr := data.URL
 	token := urlutils.GetShortURLToken()
-	err = router.URLShortenerService.SaveShortURL(ogURLStr, token)
+	shortURL, err := router.URLShortenerService.SaveShortURL(ogURLStr, token)
 
 	if err != nil {
 		if errors.Is(err, repo.ErrDuplicateURL) {
@@ -99,7 +96,6 @@ func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	shortURL := fmt.Sprintf("%s/%s", config.Cfg.BaseURL, token)
 	res := ShortenURLResponseDTO{Result: shortURL}
 
 	return ctx.JSON(http.StatusCreated, res)

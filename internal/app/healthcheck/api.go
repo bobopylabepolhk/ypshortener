@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/bobopylabepolhk/ypshortener/pkg/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -21,6 +22,7 @@ func (router *Router) HandlePing(ctx echo.Context) error {
 	err := router.HealthcheckService.PingDB()
 
 	if err != nil {
+		logger.Error(err.Error())
 		return echo.ErrInternalServerError
 	}
 

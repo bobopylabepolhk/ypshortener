@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"embed"
+	"fmt"
 
 	_ "github.com/lib/pq"
 	migrate "github.com/rubenv/sql-migrate"
@@ -17,7 +18,7 @@ func New() (*sql.DB, error) {
 	db, err := sql.Open("postgres", config.Cfg.PostgresDSN)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to init db: %w", err)
 	}
 
 	return db, nil
@@ -31,5 +32,5 @@ func Migrate(db *sql.DB) error {
 
 	_, err := migrate.Exec(db, "postgres", migrations, migrate.Up)
 
-	return err
+	return fmt.Errorf("failed to run migrations: %w", err)
 }

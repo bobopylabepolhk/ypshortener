@@ -3,6 +3,7 @@ package repo
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 )
 
 type URLShortenerRepoPostgres struct {
@@ -19,12 +20,12 @@ func (repo *URLShortenerRepoPostgres) CreateShortURL(token string, ogURL string)
 	)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("postgres.CreateShortURL: %w", err)
 	}
 
 	rows, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return fmt.Errorf("postgres.CreateShortURL: %w", err)
 	}
 
 	if rows == 0 {
@@ -40,7 +41,7 @@ func (repo *URLShortenerRepoPostgres) GetOgURL(shortURL string) (string, error) 
 	err := row.Scan(&ogURL)
 
 	if err != nil {
-		return "", errShortURLDoesNotExist(shortURL)
+		return "", fmt.Errorf("postgres.GetOgURL: %w", errShortURLDoesNotExist(shortURL))
 	}
 
 	return ogURL, nil
@@ -50,14 +51,14 @@ func (repo *URLShortenerRepoPostgres) SaveURLBatch(batch []URLBatch) error {
 	t, err := repo.db.Begin()
 
 	if err != nil {
-		return err
+		return fmt.Errorf("postgres.SaveURLBatch: %w", err)
 	}
 
 	defer t.Rollback()
 
 	stmt, err := t.Prepare("INSERT INTO url (og_url, short_url) VALUES ($1, $2) ON CONFLICT (og_url) DO NOTHING")
 	if err != nil {
-		return err
+		return fmt.Errorf("postgres.SaveURLBatch: %w", err)
 	}
 
 	defer stmt.Close()
@@ -66,7 +67,7 @@ func (repo *URLShortenerRepoPostgres) SaveURLBatch(batch []URLBatch) error {
 		_, err := stmt.Exec(item.OgURL, item.ShortURL)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("postgres.SaveURLBatch: %w", err)
 		}
 	}
 
@@ -79,7 +80,7 @@ func (repo *URLShortenerRepoPostgres) FindTokenByOgURL(ogURL string) (string, er
 	err := row.Scan(&res)
 
 	if err != nil {
-		return "", errOgURLNotFound(ogURL)
+		return "", fmt.Errorf("postgres.FindTokenByOgURL: %w", errOgURLNotFound(ogURL))
 	}
 
 	return res, nil

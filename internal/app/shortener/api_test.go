@@ -144,7 +144,7 @@ func TestHandleGetURL(t *testing.T) {
 		us := shortener.NewURLShortenerService(repo)
 		token := "Ghf6i9"
 		ogURL := "https://yandex.ru/maps/geo/sankt_peterburg/53000093/?ll=30.092322%2C59.940675&z=9.87"
-		err = us.SaveShortURL(ogURL, token)
+		_, err = us.SaveShortURL(ogURL, token)
 		assert.NoError(t, err)
 
 		router := shortener.Router{URLShortenerService: us}

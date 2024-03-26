@@ -1,5 +1,7 @@
 package repo
 
+import "fmt"
+
 type URLShortenerRepoMemory struct {
 	urls map[string]string
 }
@@ -14,7 +16,7 @@ func (repo *URLShortenerRepoMemory) GetOgURL(shortURL string) (string, error) {
 		return v, nil
 	}
 
-	return "", errShortURLDoesNotExist(shortURL)
+	return "", fmt.Errorf("memory.GetOgURL: %w", errShortURLDoesNotExist(shortURL))
 }
 
 func (repo *URLShortenerRepoMemory) SaveURLBatch(batch []URLBatch) error {
@@ -32,7 +34,7 @@ func (repo *URLShortenerRepoMemory) FindTokenByOgURL(ogURL string) (string, erro
 		}
 	}
 
-	return "", errOgURLNotFound(ogURL)
+	return "", fmt.Errorf("memory.GetOgURL: %w", errOgURLNotFound(ogURL))
 }
 
 func newURLShortenerRepoMemory() *URLShortenerRepoMemory {
