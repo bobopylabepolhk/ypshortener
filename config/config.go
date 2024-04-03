@@ -14,6 +14,7 @@ type Config struct {
 	Debug          bool   `env:"DEBUG" env-default:"false"`
 	URLStoragePath string `env:"FILE_STORAGE_PATH"`
 	PostgresDSN    string `env:"DATABASE_DSN"`
+	Secret         string `env:"SECRET" env-default:"OMEGASECUREKEYT01FR0FTRUNVUkVLRVkxMjMhQA"`
 }
 
 var Cfg Config

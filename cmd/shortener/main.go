@@ -15,11 +15,12 @@ import (
 func run() {
 	e := echo.New()
 
-	// logger
+	// middleware
+	e.Use(customMiddleware.AuthMiddleware(config.Cfg.Secret))
+
 	l := logger.New()
 	e.Use(customMiddleware.LoggerMiddleware(l))
 
-	// gzip
 	e.Use(customMiddleware.GzipMiddleware())
 	e.Use(defaultMiddleware.Decompress())
 

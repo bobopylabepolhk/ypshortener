@@ -10,16 +10,18 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener/repo"
+	"github.com/bobopylabepolhk/ypshortener/pkg/auth"
 	"github.com/bobopylabepolhk/ypshortener/pkg/logger"
 	"github.com/bobopylabepolhk/ypshortener/pkg/urlutils"
 )
 
 type (
 	URLShortener interface {
-		SaveShortURL(ctx context.Context, url string, token string) (string, error)
+		SaveShortURL(ctx context.Context, url string, token string, userID string) (string, error)
 		GetOriginalURL(ctx context.Context, shortURL string) (string, error)
-		SaveURLBatch(ctx context.Context, batch []ShortenBatchRequestDTO) ([]ShortenBatchResponseDTO, error)
+		SaveURLBatch(ctx context.Context, batch []ShortenBatchRequestDTO, userID string) ([]ShortenBatchResponseDTO, error)
 		GetExistingShortURL(ctx context.Context, ogURL string) (string, error)
+		GetUserURLs(ctx context.Context, userID string) ([]repo.URLBatch, error)
 	}
 
 	Router struct {
@@ -46,8 +48,8 @@ func (router *Router) HandleShortenURL(ctx echo.Context) error {
 	}
 
 	ogURLStr := string(ogURL)
-	token := urlutils.GetShortURLToken()
-	res, err := router.URLShortenerService.SaveShortURL(ctx.Request().Context(), ogURLStr, token)
+	token := urlutils.CreateRandomToken(6)
+	res, err := router.URLShortenerService.SaveShortURL(ctx.Request().Context(), ogURLStr, token, auth.GetUserID(ctx))
 	if err != nil {
 		if errors.Is(err, repo.ErrDuplicateURL) {
 			shortURL, err := router.URLShortenerService.GetExistingShortURL(ctx.Request().Context(), ogURLStr)
@@ -81,8 +83,8 @@ func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
 	}
 
 	ogURLStr := data.URL
-	token := urlutils.GetShortURLToken()
-	shortURL, err := router.URLShortenerService.SaveShortURL(ctx.Request().Context(), ogURLStr, token)
+	token := urlutils.CreateRandomToken(6)
+	shortURL, err := router.URLShortenerService.SaveShortURL(ctx.Request().Context(), ogURLStr, token, auth.GetUserID(ctx))
 
 	if err != nil {
 		if errors.Is(err, repo.ErrDuplicateURL) {
@@ -120,13 +122,31 @@ func (router *Router) HandleBatchShortenURL(ctx echo.Context) error {
 		return echo.ErrUnprocessableEntity
 	}
 
-	res, err := router.URLShortenerService.SaveURLBatch(ctx.Request().Context(), data)
+	res, err := router.URLShortenerService.SaveURLBatch(ctx.Request().Context(), data, auth.GetUserID(ctx))
 
 	if err != nil {
 		return echo.ErrInternalServerError
 	}
 
 	return ctx.JSON(http.StatusCreated, res)
+}
+
+func (router *Router) HandleUserUrls(ctx echo.Context) error {
+	cookie, err := ctx.Cookie(auth.USER_ID_COOKIE)
+	if err != nil {
+		return echo.ErrUnauthorized
+	}
+
+	res, err := router.URLShortenerService.GetUserURLs(ctx.Request().Context(), cookie.Value)
+	if err != nil {
+		return echo.ErrUnauthorized
+	}
+
+	if len(res) > 0 {
+		return ctx.JSON(http.StatusOK, res)
+	}
+
+	return ctx.NoContent(http.StatusNoContent)
 }
 
 func NewRouter(e *echo.Echo, db *sql.DB) {
@@ -141,4 +161,5 @@ func NewRouter(e *echo.Echo, db *sql.DB) {
 
 	e.POST("/api/shorten", router.HandleJSONShortenURL)
 	e.POST("/api/shorten/batch", router.HandleBatchShortenURL)
+	e.GET("/api/user/urls", router.HandleUserUrls)
 }

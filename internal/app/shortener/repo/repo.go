@@ -20,15 +20,16 @@ type (
 	option func(*URLShortenerRepositoryConfig)
 
 	URLBatch struct {
-		ShortURL string
-		OgURL    string
+		ShortURL string `json:"short_url"`
+		OgURL    string `json:"original_url"`
 	}
 
 	URLShortenerRepository interface {
-		CreateShortURL(ctx context.Context, token string, ogURL string) error
+		CreateShortURL(ctx context.Context, token string, ogURL string, userID string) error
 		GetOgURL(ctx context.Context, shortURL string) (string, error)
-		SaveURLBatch(ctx context.Context, batch []URLBatch) error
+		SaveURLBatch(ctx context.Context, batch []URLBatch, userID string) error
 		FindTokenByOgURL(ctx context.Context, ogURL string) (string, error)
+		GetURLsByUser(ctx context.Context, userId string) ([]URLBatch, error)
 	}
 )
 
