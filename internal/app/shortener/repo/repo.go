@@ -29,7 +29,7 @@ type (
 		GetOgURL(ctx context.Context, shortURL string) (string, error)
 		SaveURLBatch(ctx context.Context, batch []URLBatch, userID string) error
 		FindTokenByOgURL(ctx context.Context, ogURL string) (string, error)
-		GetURLsByUser(ctx context.Context, userId string) ([]URLBatch, error)
+		GetURLsByUser(ctx context.Context, userID string) ([]URLBatch, error)
 	}
 )
 

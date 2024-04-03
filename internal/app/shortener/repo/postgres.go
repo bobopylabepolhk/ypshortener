@@ -94,13 +94,18 @@ func (repo *URLShortenerRepoPostgres) GetURLsByUser(ctx context.Context, userID 
 	if err != nil {
 		return nil, fmt.Errorf("postgres.GetURLsByUser: %w", err)
 	}
+
 	defer rows.Close()
 
 	res := []URLBatch{}
 	for rows.Next() {
 		item := URLBatch{}
+		if rows.Err() != nil {
+			return res, fmt.Errorf("postgres.GetURLsByUser: %w", rows.Err())
+		}
+
 		if err = rows.Scan(&item.ShortURL, &item.OgURL); err != nil {
-			return res, err
+			return res, fmt.Errorf("postgres.GetURLsByUser: %w", err)
 		}
 		res = append(res, item)
 	}

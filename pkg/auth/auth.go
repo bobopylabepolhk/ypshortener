@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var USER_ID_COOKIE string = "ypshortener_user_id"
+var UserIDCookie string = "ypshortener_user_id"
 var idLength int = 12
 
 func ValidateUserID(userID string, secret string) bool {
@@ -21,7 +21,7 @@ func ValidateUserID(userID string, secret string) bool {
 	return hmac.Equal([]byte(userID[idLength:]), hash.Sum(nil))
 }
 
-func GenerateUserId(secret string) string {
+func GenerateUserID(secret string) string {
 	token := urlutils.CreateRandomToken(idLength)
 	hash := hmac.New(sha256.New, []byte(secret))
 	hash.Write([]byte(token))
@@ -29,5 +29,5 @@ func GenerateUserId(secret string) string {
 }
 
 func GetUserID(ctx echo.Context) string {
-	return ctx.Get(USER_ID_COOKIE).(string)
+	return ctx.Get(UserIDCookie).(string)
 }

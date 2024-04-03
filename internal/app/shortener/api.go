@@ -132,7 +132,7 @@ func (router *Router) HandleBatchShortenURL(ctx echo.Context) error {
 }
 
 func (router *Router) HandleUserUrls(ctx echo.Context) error {
-	cookie, err := ctx.Cookie(auth.USER_ID_COOKIE)
+	cookie, err := ctx.Cookie(auth.UserIDCookie)
 	if err != nil {
 		return echo.ErrUnauthorized
 	}

@@ -42,7 +42,7 @@ func (repo *URLShortenerRepoMemory) FindTokenByOgURL(_ context.Context, ogURL st
 		}
 	}
 
-	return "", fmt.Errorf("memory.GetOgURL: %w", errOgURLNotFound(ogURL))
+	return "", fmt.Errorf("memory.FindTokenByOgURLs: %w", errOgURLNotFound(ogURL))
 }
 
 func (repo *URLShortenerRepoMemory) GetURLsByUser(_ context.Context, userID string) ([]URLBatch, error) {
