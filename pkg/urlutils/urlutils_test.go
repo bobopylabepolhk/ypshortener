@@ -47,7 +47,7 @@ func TestGetToken(t *testing.T) {
 
 	t.Run("token should never contain: ? / # & % . ,", func(t *testing.T) {
 		for i := 0; i < iterations; i++ {
-			token := urlutils.GetShortURLToken()
+			token := urlutils.CreateRandomToken(7)
 			r := regexp.MustCompile(`[^?/#&%.,]*$`)
 
 			require.Regexp(t, r, token)

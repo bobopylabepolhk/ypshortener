@@ -26,12 +26,11 @@ func ValidateURL(rawURL string) bool {
 	return validScheme && validHost && !isLocal
 }
 
-func GetShortURLToken() string {
+func CreateRandomToken(tokenLen int) string {
 	const tokenChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	seed := time.Now().UnixNano()
 	rand.New(rand.NewSource(seed))
 
-	tokenLen := 6
 	result := make([]byte, tokenLen)
 
 	for i := 0; i < tokenLen; i++ {

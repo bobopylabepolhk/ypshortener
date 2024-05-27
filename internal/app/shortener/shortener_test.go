@@ -28,7 +28,7 @@ func TestGetOgURL(t *testing.T) {
 
 		token := "6Tg8oJ"
 		ogURL := "https://yandex.com/"
-		_, err = us.SaveShortURL(context.Background(), ogURL, token)
+		_, err = us.SaveShortURL(context.Background(), ogURL, token, "1")
 		require.NoError(t, err)
 		r, err := us.GetOriginalURL(context.Background(), token)
 		assert.NoError(t, err)
@@ -43,7 +43,7 @@ func TestSaveShortURL(t *testing.T) {
 	us := shortener.NewURLShortenerService(repo)
 
 	t.Run("should return err if called with invalid url", func(t *testing.T) {
-		_, err := us.SaveShortURL(context.Background(), "blahblah", "YUG76a")
+		_, err := us.SaveShortURL(context.Background(), "blahblah", "YUG76a", "1")
 		assert.Error(t, err, t.Name())
 	})
 }

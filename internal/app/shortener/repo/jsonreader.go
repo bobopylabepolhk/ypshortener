@@ -24,9 +24,9 @@ type (
 	}
 )
 
-func (repoWithReader *URLShortenerRepoWithJSONReader) CreateShortURL(ctx context.Context, token string, ogURL string) error {
+func (repoWithReader *URLShortenerRepoWithJSONReader) CreateShortURL(ctx context.Context, token string, ogURL string, userID string) error {
 	data := URLShortenerRow{ShortURL: token, OgURL: ogURL}
-	err := repoWithReader.repo.CreateShortURL(ctx, token, ogURL)
+	err := repoWithReader.repo.CreateShortURL(ctx, token, ogURL, userID)
 
 	if err != nil {
 		return fmt.Errorf("jsonReader.CreateShortURL: %w", err)
@@ -43,7 +43,7 @@ func (repoWithReader *URLShortenerRepoWithJSONReader) FindTokenByOgURL(ctx conte
 	return repoWithReader.repo.FindTokenByOgURL(ctx, ogURL)
 }
 
-func (repoWithReader *URLShortenerRepoWithJSONReader) SaveURLBatch(ctx context.Context, batch []URLBatch) error {
+func (repoWithReader *URLShortenerRepoWithJSONReader) SaveURLBatch(ctx context.Context, batch []URLBatch, userID string) error {
 	for _, item := range batch {
 		err := repoWithReader.jsonReader.WriteRow(item)
 
@@ -52,7 +52,15 @@ func (repoWithReader *URLShortenerRepoWithJSONReader) SaveURLBatch(ctx context.C
 		}
 	}
 
-	return repoWithReader.repo.SaveURLBatch(ctx, batch)
+	return repoWithReader.repo.SaveURLBatch(ctx, batch, userID)
+}
+
+func (repoWithReader *URLShortenerRepoWithJSONReader) GetURLsByUser(ctx context.Context, userID string) ([]URLBatch, error) {
+	return repoWithReader.repo.GetURLsByUser(ctx, userID)
+}
+
+func (repoWithReader *URLShortenerRepoWithJSONReader) DeleteURLs(ctx context.Context, tokens []string, userID string) error {
+	return repoWithReader.repo.DeleteURLs(ctx, tokens, userID)
 }
 
 func newURLShortenerRepoWithReader(storagePath string) (*URLShortenerRepoWithJSONReader, error) {
@@ -75,6 +83,6 @@ func newURLShortenerRepoWithReader(storagePath string) (*URLShortenerRepoWithJSO
 		urls[key] = v
 	}
 
-	repo := URLShortenerRepoMemory{urls: urls}
+	repo := URLShortenerRepoMemory{urls: urls, urlsByUserID: make(map[string][]URLBatch)}
 	return &URLShortenerRepoWithJSONReader{repo: repo, jsonReader: JSONReader}, nil
 }

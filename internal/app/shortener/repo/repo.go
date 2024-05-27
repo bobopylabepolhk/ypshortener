@@ -20,15 +20,17 @@ type (
 	option func(*URLShortenerRepositoryConfig)
 
 	URLBatch struct {
-		ShortURL string
-		OgURL    string
+		ShortURL string `json:"short_url"`
+		OgURL    string `json:"original_url"`
 	}
 
 	URLShortenerRepository interface {
-		CreateShortURL(ctx context.Context, token string, ogURL string) error
+		CreateShortURL(ctx context.Context, token string, ogURL string, userID string) error
 		GetOgURL(ctx context.Context, shortURL string) (string, error)
-		SaveURLBatch(ctx context.Context, batch []URLBatch) error
+		SaveURLBatch(ctx context.Context, batch []URLBatch, userID string) error
 		FindTokenByOgURL(ctx context.Context, ogURL string) (string, error)
+		GetURLsByUser(ctx context.Context, userID string) ([]URLBatch, error)
+		DeleteURLs(ctx context.Context, tokens []string, userID string) error
 	}
 )
 
@@ -37,14 +39,6 @@ const (
 	RepoPostgres
 	RepoWithJSONReader
 )
-
-func errShortURLDoesNotExist(shortURL string) error {
-	return fmt.Errorf("short url %s was never created", shortURL)
-}
-
-func errOgURLNotFound(ogURL string) error {
-	return fmt.Errorf("original url %s was not found", ogURL)
-}
 
 func NewURLShortenerRepo(options ...option) (URLShortenerRepository, error) {
 	repoConfig := &URLShortenerRepositoryConfig{
