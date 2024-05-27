@@ -83,6 +83,6 @@ func newURLShortenerRepoWithReader(storagePath string) (*URLShortenerRepoWithJSO
 		urls[key] = v
 	}
 
-	repo := URLShortenerRepoMemory{urls: urls}
+	repo := URLShortenerRepoMemory{urls: urls, urlsByUserID: make(map[string][]URLBatch)}
 	return &URLShortenerRepoWithJSONReader{repo: repo, jsonReader: JSONReader}, nil
 }
