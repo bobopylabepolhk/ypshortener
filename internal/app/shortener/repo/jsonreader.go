@@ -59,6 +59,10 @@ func (repoWithReader *URLShortenerRepoWithJSONReader) GetURLsByUser(ctx context.
 	return repoWithReader.repo.GetURLsByUser(ctx, userID)
 }
 
+func (repoWithReader *URLShortenerRepoWithJSONReader) DeleteURLs(ctx context.Context, tokens []string, userID string) error {
+	return repoWithReader.repo.DeleteURLs(ctx, tokens, userID)
+}
+
 func newURLShortenerRepoWithReader(storagePath string) (*URLShortenerRepoWithJSONReader, error) {
 	JSONReader, err := jsonreader.NewJSONReader(storagePath)
 	if err != nil {

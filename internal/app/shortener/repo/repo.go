@@ -30,6 +30,7 @@ type (
 		SaveURLBatch(ctx context.Context, batch []URLBatch, userID string) error
 		FindTokenByOgURL(ctx context.Context, ogURL string) (string, error)
 		GetURLsByUser(ctx context.Context, userID string) ([]URLBatch, error)
+		DeleteURLs(ctx context.Context, tokens []string, userID string) error
 	}
 )
 
@@ -38,14 +39,6 @@ const (
 	RepoPostgres
 	RepoWithJSONReader
 )
-
-func errShortURLDoesNotExist(shortURL string) error {
-	return fmt.Errorf("short url %s was never created", shortURL)
-}
-
-func errOgURLNotFound(ogURL string) error {
-	return fmt.Errorf("original url %s was not found", ogURL)
-}
 
 func NewURLShortenerRepo(options ...option) (URLShortenerRepository, error) {
 	repoConfig := &URLShortenerRepositoryConfig{

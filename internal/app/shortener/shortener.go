@@ -68,3 +68,7 @@ func (us URLShortenerService) GetUserURLs(ctx context.Context, userID string) ([
 
 	return res, nil
 }
+
+func (us URLShortenerService) DeleteURLs(ctx context.Context, tokens []string, userID string) error {
+	return us.repo.DeleteURLs(ctx, tokens, userID)
+}

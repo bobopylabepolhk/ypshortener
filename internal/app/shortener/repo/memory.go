@@ -49,6 +49,14 @@ func (repo *URLShortenerRepoMemory) GetURLsByUser(_ context.Context, userID stri
 	return repo.urlsByUserID[userID], nil
 }
 
+func (repo *URLShortenerRepoMemory) DeleteURLs(ctx context.Context, tokens []string, userID string) error {
+	for _, k := range repo.urls {
+		delete(repo.urls, k)
+		delete(repo.urlsByUserID, k)
+	}
+	return nil
+}
+
 func newURLShortenerRepoMemory() *URLShortenerRepoMemory {
 	return &URLShortenerRepoMemory{urls: make(map[string]string), urlsByUserID: make(map[string][]URLBatch)}
 }

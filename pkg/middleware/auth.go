@@ -19,6 +19,8 @@ func AuthMiddleware(secret string) echo.MiddlewareFunc {
 				c.Value = userID
 				ctx.SetCookie(c)
 				ctx.Set(auth.UserIDCookie, userID)
+			} else {
+				ctx.Set(auth.UserIDCookie, c.Value)
 			}
 
 			return next(ctx)

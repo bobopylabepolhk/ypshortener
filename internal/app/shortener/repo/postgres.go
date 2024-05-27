@@ -3,20 +3,20 @@ package repo
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
+	"sync"
+
+	"github.com/bobopylabepolhk/ypshortener/pkg/logger"
 )
 
 type URLShortenerRepoPostgres struct {
 	db *sql.DB
 }
 
-var ErrDuplicateURL = errors.New("shortURL already exists for this ogURL")
-
 func (repo *URLShortenerRepoPostgres) CreateShortURL(ctx context.Context, token string, ogURL string, userID string) error {
 	res, err := repo.db.ExecContext(
 		ctx,
-		"INSERT INTO url (og_url, short_url, user_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
+		"INSERT INTO url (og_url, short_url, user_id, is_deleted) VALUES ($1, $2, $3, false) ON CONFLICT DO NOTHING",
 		ogURL,
 		token,
 		userID,
@@ -40,11 +40,16 @@ func (repo *URLShortenerRepoPostgres) CreateShortURL(ctx context.Context, token 
 
 func (repo *URLShortenerRepoPostgres) GetOgURL(ctx context.Context, shortURL string) (string, error) {
 	var ogURL string
-	row := repo.db.QueryRowContext(ctx, "SELECT og_url FROM url WHERE short_url = $1", shortURL)
-	err := row.Scan(&ogURL)
+	var isDeleted bool
+	row := repo.db.QueryRowContext(ctx, "SELECT og_url, is_deleted FROM url WHERE short_url = $1", shortURL)
+	err := row.Scan(&ogURL, &isDeleted)
 
 	if err != nil {
 		return "", fmt.Errorf("postgres.GetOgURL: %w", errShortURLDoesNotExist(shortURL))
+	}
+
+	if isDeleted {
+		return "", ErrURLIsDeleted
 	}
 
 	return ogURL, nil
@@ -59,7 +64,7 @@ func (repo *URLShortenerRepoPostgres) SaveURLBatch(ctx context.Context, batch []
 
 	defer t.Rollback()
 
-	stmt, err := t.Prepare("INSERT INTO url (og_url, short_url, user_id) VALUES ($1, $2, $3) ON CONFLICT (og_url) DO NOTHING")
+	stmt, err := t.Prepare("INSERT INTO url (og_url, short_url, user_id, is_deleted) VALUES ($1, $2, $3, false) ON CONFLICT (og_url) DO NOTHING")
 	if err != nil {
 		return fmt.Errorf("postgres.SaveURLBatch: %w", err)
 	}
@@ -111,6 +116,48 @@ func (repo *URLShortenerRepoPostgres) GetURLsByUser(ctx context.Context, userID 
 	}
 
 	return res, nil
+}
+
+func (repo *URLShortenerRepoPostgres) DeleteURLs(ctx context.Context, tokens []string, userID string) error {
+	t, err := repo.db.BeginTx(ctx, nil)
+
+	if err != nil {
+		return fmt.Errorf("postgres.DeleteURLs: %w", err)
+	}
+
+	defer t.Rollback()
+
+	stmt, err := t.Prepare("UPDATE url SET is_deleted = true WHERE user_id=$1 AND short_url=$2")
+	if err != nil {
+		return fmt.Errorf("postgres.DeleteURLs: %w", err)
+	}
+
+	defer stmt.Close()
+
+	var wg sync.WaitGroup
+	for _, token := range tokens {
+		wg.Add(1)
+		go func(token string) {
+			defer wg.Done()
+			_, err := stmt.ExecContext(ctx, userID, token)
+
+			if err != nil {
+				err = fmt.Errorf("postgres.DeleteURLs: delete failed %w", err)
+				logger.Error(err.Error())
+			}
+		}(token)
+	}
+
+	go func() {
+		wg.Wait()
+		err := t.Commit()
+		if err != nil {
+			err = fmt.Errorf("postgres.DeleteURLs: failed to commit %w", err)
+			logger.Error(err.Error())
+		}
+	}()
+
+	return nil
 }
 
 func newURLShortenerRepoPostgres(db *sql.DB) *URLShortenerRepoPostgres {

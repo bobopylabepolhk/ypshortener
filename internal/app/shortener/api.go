@@ -22,6 +22,7 @@ type (
 		SaveURLBatch(ctx context.Context, batch []ShortenBatchRequestDTO, userID string) ([]ShortenBatchResponseDTO, error)
 		GetExistingShortURL(ctx context.Context, ogURL string) (string, error)
 		GetUserURLs(ctx context.Context, userID string) ([]repo.URLBatch, error)
+		DeleteURLs(ctx context.Context, tokens []string, userID string) error
 	}
 
 	Router struct {
@@ -34,6 +35,9 @@ func (router *Router) HandleGetURL(ctx echo.Context) error {
 
 	ogURL, err := router.URLShortenerService.GetOriginalURL(ctx.Request().Context(), token)
 	if err != nil {
+		if errors.Is(err, repo.ErrURLIsDeleted) {
+			return echo.ErrGone
+		}
 		return echo.ErrNotFound
 	}
 
@@ -149,6 +153,22 @@ func (router *Router) HandleUserUrls(ctx echo.Context) error {
 	return ctx.NoContent(http.StatusNoContent)
 }
 
+func (router *Router) HandleDeleteURLs(ctx echo.Context) error {
+	userID := auth.GetUserID(ctx)
+	urls := []string{}
+	if err := ctx.Bind(&urls); err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	err := router.URLShortenerService.DeleteURLs(ctx.Request().Context(), urls, userID)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	return ctx.NoContent(http.StatusAccepted)
+}
+
 func NewRouter(e *echo.Echo, db *sql.DB) {
 	repo, err := repo.NewURLShortenerRepo(repo.WithPostgres(db))
 	if err != nil {
@@ -162,4 +182,5 @@ func NewRouter(e *echo.Echo, db *sql.DB) {
 	e.POST("/api/shorten", router.HandleJSONShortenURL)
 	e.POST("/api/shorten/batch", router.HandleBatchShortenURL)
 	e.GET("/api/user/urls", router.HandleUserUrls)
+	e.DELETE("/api/user/urls", router.HandleDeleteURLs)
 }

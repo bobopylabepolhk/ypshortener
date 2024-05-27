@@ -15,10 +15,11 @@ var idLength int = 12
 
 func ValidateUserID(userID string, secret string) bool {
 	hash := hmac.New(sha256.New, []byte(secret))
-	d := []byte(userID)
-	hash.Write(d[:idLength])
+	binaryToken := []byte(userID)[:idLength]
+	hash.Write(binaryToken)
+	s := hash.Sum(nil)
 
-	return hmac.Equal([]byte(userID[idLength:]), hash.Sum(nil))
+	return userID[idLength:] == base64.StdEncoding.EncodeToString(s)
 }
 
 func GenerateUserID(secret string) string {
