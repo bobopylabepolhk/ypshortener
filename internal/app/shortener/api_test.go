@@ -16,7 +16,10 @@ import (
 	"github.com/bobopylabepolhk/ypshortener/config"
 	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener"
 	"github.com/bobopylabepolhk/ypshortener/internal/app/shortener/repo"
+	"github.com/bobopylabepolhk/ypshortener/pkg/auth"
 )
+
+const MockUserID = "yqtwdefawy7icdftvxaw"
 
 func TestHandleShortenURL(t *testing.T) {
 	t.Run("should save ogURL and respond with shortURL", func(t *testing.T) {
@@ -30,6 +33,7 @@ func TestHandleShortenURL(t *testing.T) {
 
 		e := echo.New()
 		ctx := e.NewContext(req, rec)
+		ctx.Set(auth.UserIDCookie, MockUserID)
 		err = router.HandleShortenURL(ctx)
 		require.NoError(t, err)
 
@@ -58,6 +62,7 @@ func TestHandleShortenURL(t *testing.T) {
 
 		e := echo.New()
 		ctx := e.NewContext(req, rec)
+		ctx.Set(auth.UserIDCookie, MockUserID)
 		err = router.HandleShortenURL(ctx)
 
 		assert.EqualError(t, err, echo.ErrBadRequest.Error())
@@ -73,11 +78,15 @@ func TestHandleShortenURL(t *testing.T) {
 		e := echo.New()
 
 		req1 := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(ogURL))
-		router.HandleShortenURL(e.NewContext(req1, rec))
+		ctx := e.NewContext(req1, rec)
+		ctx.Set(auth.UserIDCookie, MockUserID)
+		router.HandleShortenURL(ctx)
 		resp1 := rec.Result()
 
 		req2 := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(ogURL))
-		router.HandleShortenURL(e.NewContext(req2, rec))
+		ctx = e.NewContext(req2, rec)
+		ctx.Set(auth.UserIDCookie, MockUserID)
+		router.HandleShortenURL(ctx)
 		resp2 := rec.Result()
 
 		defer resp1.Body.Close()
@@ -103,6 +112,7 @@ func TestHandleJSONShortenURl(t *testing.T) {
 
 		e := echo.New()
 		ctx := e.NewContext(req, rec)
+		ctx.Set(auth.UserIDCookie, MockUserID)
 		err = router.HandleJSONShortenURL(ctx)
 
 		assert.EqualError(t, err, echo.ErrUnprocessableEntity.Error())
@@ -130,6 +140,7 @@ func TestHandleJSONShortenURl(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewReader(data))
 
 			ctx := e.NewContext(req, rec)
+			ctx.Set(auth.UserIDCookie, MockUserID)
 			err := router.HandleJSONShortenURL(ctx)
 
 			assert.EqualError(t, err, echo.ErrUnprocessableEntity.Error())
