@@ -148,16 +148,14 @@ func (repo *URLShortenerRepoPostgres) DeleteURLs(ctx context.Context, tokens []s
 		}(token)
 	}
 
-	go func() {
-		wg.Wait()
-		err := t.Commit()
-		if err != nil {
-			err = fmt.Errorf("postgres.DeleteURLs: failed to commit %w", err)
-			logger.Error(err.Error())
-		}
-	}()
+	wg.Wait()
+	err = t.Commit()
+	if err != nil {
+		err = fmt.Errorf("postgres.DeleteURLs: failed to commit %w", err)
+		logger.Error(err.Error())
+	}
 
-	return nil
+	return err
 }
 
 func newURLShortenerRepoPostgres(db *sql.DB) *URLShortenerRepoPostgres {

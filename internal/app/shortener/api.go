@@ -99,7 +99,6 @@ func (router *Router) HandleJSONShortenURL(ctx echo.Context) error {
 
 			return ctx.JSON(http.StatusConflict, ShortenURLResponseDTO{Result: shortURL})
 		}
-
 		return echo.ErrBadRequest
 	}
 
@@ -162,7 +161,6 @@ func (router *Router) HandleDeleteURLs(ctx echo.Context) error {
 
 	err := router.URLShortenerService.DeleteURLs(ctx.Request().Context(), urls, userID)
 	if err != nil {
-		ctx.Logger().Error(err)
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
