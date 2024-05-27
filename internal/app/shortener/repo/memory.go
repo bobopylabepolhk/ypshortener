@@ -16,6 +16,7 @@ func (repo *URLShortenerRepoMemory) CreateShortURL(_ context.Context, token stri
 		repo.urlsByUserID[userID] = append(item, URLBatch{ShortURL: token, OgURL: ogURL})
 		return nil
 	}
+	repo.urlsByUserID[userID] = make([]URLBatch, 1)
 	repo.urlsByUserID[userID] = []URLBatch{{ShortURL: token, OgURL: ogURL}}
 
 	return nil
@@ -39,6 +40,7 @@ func (repo *URLShortenerRepoMemory) SaveURLBatch(_ context.Context, batch []URLB
 		repo.urlsByUserID[userID] = append(item, newUserRecords...)
 		return nil
 	}
+	repo.urlsByUserID[userID] = make([]URLBatch, len(newUserRecords))
 	repo.urlsByUserID[userID] = newUserRecords
 
 	return nil
