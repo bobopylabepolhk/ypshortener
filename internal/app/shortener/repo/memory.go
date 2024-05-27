@@ -12,7 +12,12 @@ type URLShortenerRepoMemory struct {
 
 func (repo *URLShortenerRepoMemory) CreateShortURL(_ context.Context, token string, ogURL string, userID string) error {
 	repo.urls[token] = ogURL
-	repo.urlsByUserID[userID] = append(repo.urlsByUserID[userID], URLBatch{ShortURL: token, OgURL: ogURL})
+	if item, ok := repo.urlsByUserID[userID]; ok {
+		repo.urlsByUserID[userID] = append(item, URLBatch{ShortURL: token, OgURL: ogURL})
+		return nil
+	}
+	repo.urlsByUserID[userID] = []URLBatch{{ShortURL: token, OgURL: ogURL}}
+
 	return nil
 }
 
@@ -30,7 +35,11 @@ func (repo *URLShortenerRepoMemory) SaveURLBatch(_ context.Context, batch []URLB
 		repo.urls[item.ShortURL] = item.OgURL
 		newUserRecords[idx] = URLBatch{ShortURL: item.ShortURL, OgURL: item.OgURL}
 	}
-	repo.urlsByUserID[userID] = append(repo.urlsByUserID[userID], newUserRecords...)
+	if item, ok := repo.urlsByUserID[userID]; ok {
+		repo.urlsByUserID[userID] = append(item, newUserRecords...)
+		return nil
+	}
+	repo.urlsByUserID[userID] = newUserRecords
 
 	return nil
 }
