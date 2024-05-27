@@ -1,12 +1,6 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"os"
-	"os/signal"
-	"time"
-
 	"github.com/labstack/echo/v4"
 	defaultMiddleware "github.com/labstack/echo/v4/middleware"
 
@@ -45,22 +39,7 @@ func run() {
 	shortener.NewRouter(e, postgres)
 	healthcheck.NewRouter(e, postgres)
 
-	// start server
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer stop()
-	go func() {
-		e.Logger.Fatal(e.Start(config.Cfg.APIURL))
-	}()
-
-	// shutdown on interrupt
-	<-ctx.Done()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
-	if err := e.Shutdown(ctx); err != nil {
-		err = fmt.Errorf("shutdown failed: %w", err)
-		e.Logger.Fatal(err)
-	}
+	e.Logger.Fatal(e.Start(config.Cfg.APIURL))
 }
 
 func main() {
