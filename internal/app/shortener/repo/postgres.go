@@ -95,7 +95,7 @@ func (repo *URLShortenerRepoPostgres) FindTokenByOgURL(ctx context.Context, ogUR
 }
 
 func (repo *URLShortenerRepoPostgres) GetURLsByUser(ctx context.Context, userID string) ([]URLBatch, error) {
-	rows, err := repo.db.QueryContext(ctx, "SELECT short_url, og_url FROM url WHERE user_id = $1", userID)
+	rows, err := repo.db.QueryContext(ctx, "SELECT short_url, og_url FROM url WHERE user_id = $1 AND is_deleted != true", userID)
 	if err != nil {
 		return nil, fmt.Errorf("postgres.GetURLsByUser: %w", err)
 	}
@@ -134,16 +134,23 @@ func (repo *URLShortenerRepoPostgres) DeleteURLs(ctx context.Context, tokens []s
 
 	defer stmt.Close()
 
-	var wg sync.WaitGroup
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	wg := &sync.WaitGroup{}
 	for _, token := range tokens {
 		wg.Add(1)
 		go func(token string) {
 			defer wg.Done()
-			_, err := stmt.ExecContext(ctx, userID, token)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
 
+			_, err := stmt.ExecContext(ctx, userID, token)
 			if err != nil {
-				err = fmt.Errorf("postgres.DeleteURLs: delete failed %w", err)
-				logger.Error(err.Error())
+				logger.Error(fmt.Sprintf("postgres.DeleteURLs failed to delete %v: %v", token, err.Error()))
+				cancel()
 			}
 		}(token)
 	}
@@ -151,11 +158,10 @@ func (repo *URLShortenerRepoPostgres) DeleteURLs(ctx context.Context, tokens []s
 	wg.Wait()
 	err = t.Commit()
 	if err != nil {
-		err = fmt.Errorf("postgres.DeleteURLs: failed to commit %w", err)
-		logger.Error(err.Error())
+		return fmt.Errorf("postgres.DeleteURLs failed to commit: %w", err)
 	}
 
-	return err
+	return nil
 }
 
 func newURLShortenerRepoPostgres(db *sql.DB) *URLShortenerRepoPostgres {
